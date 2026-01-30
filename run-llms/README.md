@@ -1,6 +1,6 @@
 # run-llms
 
-Guide for setting up and running local LLMs using Harbor. Use when user wants to run LLMs locally, set up Ollama, Open WebUI, llama.cpp, vLLM, or similar local AI services. Covers full setup from Docker prerequisites through running models, configuration, profiles, tunnels, and advanced features.
+Guide for setting up and running local LLMs using [Harbor](https://github.com/av/harbor). Use when user wants to run LLMs locally, set up Ollama, Open WebUI, llama.cpp, vLLM, or similar local AI services. Covers full setup from Docker prerequisites through running models, configuration, profiles, tunnels, and advanced features.
 
 ```bash
 npx skills add av/skills --skill run-llms

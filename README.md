@@ -25,8 +25,14 @@ Build-less ESM frontends that run directly in the browser without bundlers. Use 
 npx skills add av/skills --skill preact-buildless-frontend
 ```
 #### **[run-llms](./run-llms)**
-Guide for setting up and running local LLMs using Harbor. Use when user wants to run LLMs locally, set up Ollama, Open WebUI, llama.cpp, vLLM, or similar local AI services. Covers full setup from Docker prerequisites through running models, configuration, profiles, tunnels, and advanced features.
+Guide for setting up and running local LLMs using [Harbor](https://github.com/av/harbor). Use when user wants to run LLMs locally, set up Ollama, Open WebUI, llama.cpp, vLLM, or similar local AI services. Covers full setup from Docker prerequisites through running models, configuration, profiles, tunnels, and advanced features.
 
 ```bash
 npx skills add av/skills --skill run-llms
+```
+#### **[tinygrad](./tinygrad)**
+Deep learning framework development with tinygrad - a minimal tensor library with autograd, JIT compilation, and multi-device support. Use when writing neural networks, training models, implementing tensor operations, working with UOps/PatternMatcher for graph transformations, or contributing to tinygrad internals. Triggers on tinygrad imports, Tensor operations, nn modules, optimizer usage, schedule/codegen work, or device backends.
+
+```bash
+npx skills add av/skills --skill tinygrad
 ```
