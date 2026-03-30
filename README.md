@@ -12,6 +12,12 @@ A library of skills made by @av related to Local LLMs, Full-Stack Development an
 
 ### Skills
 
+#### **[agent-integration-testing](./agent-integration-testing)**
+Use when the user requests integration testing, feature validation, or test plan execution
+
+```bash
+npx skills add av/skills --skill agent-integration-testing
+```
 #### **[boost-modules](./boost-modules)**
 Create custom modules for [Harbor Boost](https://github.com/av/harbor/tree/main/boost), an optimizing LLM proxy. Use when building Python modules that intercept/transform LLM chat completions—reasoning chains, prompt injection, structured outputs, artifacts, or custom workflows. Triggers on requests to create Boost modules, extend LLM behavior via proxy, or implement chat completion middleware.
 
@@ -24,15 +30,33 @@ Build-less ESM frontends that run directly in the browser without bundlers. Use 
 ```bash
 npx skills add av/skills --skill preact-buildless-frontend
 ```
+#### **[pull-llamacpp-model](./pull-llamacpp-model)**
+Use when pulling or downloading a new llamacpp model. The active ROCm image (kyuz0/amd-strix-halo-toolboxes) fails to start in the ephemeral pull container without ROCm device access. Must temporarily switch to the standard CPU image.
+
+```bash
+npx skills add av/skills --skill pull-llamacpp-model
+```
 #### **[run-llms](./run-llms)**
 Guide for setting up and running local LLMs using [Harbor](https://github.com/av/harbor). Use when user wants to run LLMs locally, set up Ollama, Open WebUI, llama.cpp, vLLM, or similar local AI services. Covers full setup from Docker prerequisites through running models, configuration, profiles, tunnels, and advanced features.
 
 ```bash
 npx skills add av/skills --skill run-llms
 ```
+#### **[timeboxed-iterating](./timeboxed-iterating)**
+Use when the user specifies a task and a duration, and the work should be done iteratively by subagents over that time period
+
+```bash
+npx skills add av/skills --skill timeboxed-iterating
+```
 #### **[tinygrad](./tinygrad)**
 Deep learning framework development with tinygrad - a minimal tensor library with autograd, JIT compilation, and multi-device support. Use when writing neural networks, training models, implementing tensor operations, working with UOps/PatternMatcher for graph transformations, or contributing to tinygrad internals. Triggers on tinygrad imports, Tensor operations, nn modules, optimizer usage, schedule/codegen work, or device backends.
 
 ```bash
 npx skills add av/skills --skill tinygrad
+```
+#### **[turso-db](./turso-db)**
+Install, configure, and work with Turso DB — an in-process SQLite-compatible relational database engine written in Rust. Use when the user needs to (1) install Turso DB, (2) create or query databases with the tursodb CLI shell, (3) use Turso from JavaScript/Node.js via @tursodatabase/database, (4) work with vector search or embeddings in Turso, (5) set up full-text search with FTS indexes, (6) configure transactions including MVCC concurrent transactions, (7) enable encryption at rest, or (8) use Change Data Capture (CDC) for audit logging.
+
+```bash
+npx skills add av/skills --skill turso-db
 ```
