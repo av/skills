@@ -24,6 +24,12 @@ Create custom modules for [Harbor Boost](https://github.com/av/harbor/tree/main/
 ```bash
 npx skills add av/skills --skill boost-modules
 ```
+#### **[bugbash](./bugbash)**
+Systematically explore and test any software project (CLI, API, Backend, Library, etc.) to find bugs, usability issues, and edge cases. Produces a structured report with full reproduction evidence (exact commands, inputs, logs, and tracebacks) for every issue.
+
+```bash
+npx skills add av/skills --skill bugbash
+```
 #### **[preact-buildless-frontend](./preact-buildless-frontend)**
 Build-less ESM frontends that run directly in the browser without bundlers. Use this skill when creating static frontends, SPAs without build tools, prototypes, or when the user explicitly wants no Vite/Webpack/bundler. Covers import maps, CDN imports, cache-busting, hash routing, and performance patterns.
 
