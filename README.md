@@ -25,7 +25,7 @@ Build-less ESM frontends that run directly in the browser without bundlers. Use 
 npx skills add av/skills --skill preact-buildless-frontend
 ```
 #### **[run-llms](./run-llms)**
-Guide for setting up and running local LLMs using [Harbor](https://github.com/av/harbor). Use when user wants to run LLMs locally, set up Ollama, Open WebUI, llama.cpp, vLLM, or similar local AI services. Covers full setup from Docker prerequisites through running models, configuration, profiles, tunnels, and advanced features.
+Comprehensive guide for setting up and running local LLMs using Harbor. Use when user wants to run LLMs locally, set up or troubleshoot Ollama, Open WebUI, llama.cpp, vLLM, SearXNG, Open Terminal, or similar local AI services. Covers full setup from Docker prerequisites through running models, per-service configuration, VRAM optimization, GPU troubleshooting, web search integration, code execution, profiles, tunnels, and advanced features. Includes decision trees for autonomous agent workflows and step-by-step troubleshooting playbooks.
 
 ```bash
 npx skills add av/skills --skill run-llms
@@ -35,4 +35,10 @@ Deep learning framework development with tinygrad - a minimal tensor library wit
 
 ```bash
 npx skills add av/skills --skill tinygrad
+```
+#### **[turso-db](./turso-db)**
+Install, configure, and work with Turso DB — an in-process SQLite-compatible relational database engine written in Rust. Use when the user needs to (1) install Turso DB, (2) create or query databases with the tursodb CLI shell, (3) use Turso from JavaScript/Node.js via @tursodatabase/database, (4) work with vector search or embeddings in Turso, (5) set up full-text search with FTS indexes, (6) configure transactions including MVCC concurrent transactions, (7) enable encryption at rest, or (8) use Change Data Capture (CDC) for audit logging.
+
+```bash
+npx skills add av/skills --skill turso-db
 ```
