@@ -30,6 +30,18 @@ Systematically explore and test any software project (CLI, API, Backend, Library
 ```bash
 npx skills add av/skills --skill bugbash
 ```
+#### **[discipline](./discipline)**
+Bulletproof agent operating protocol. 15 failure-prevention rules distilled from 120+ real sessions and 10 agent definitions. Covers fabrication, constraint tracking, verification, scoping, retry discipline, and communication. Load before any task to prevent the most common agent failure modes.
+
+```bash
+npx skills add av/skills --skill discipline
+```
+#### **[ideate](./ideate)**
+Timeboxed ideation on a topic using propose-and-critique subagent pairs. Use when the user wants to brainstorm, explore ideas, discover features, generate options, or think through possibilities for a specified duration. Triggers on requests like "brainstorm X for 30 minutes", "ideate on X", "spend an hour thinking about X", "what features should we build", "explore options for X".
+
+```bash
+npx skills add av/skills --skill ideate
+```
 #### **[preact-buildless-frontend](./preact-buildless-frontend)**
 Build-less ESM frontends that run directly in the browser without bundlers. Use this skill when creating static frontends, SPAs without build tools, prototypes, or when the user explicitly wants no Vite/Webpack/bundler. Covers import maps, CDN imports, cache-busting, hash routing, and performance patterns.
 
