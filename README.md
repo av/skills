@@ -54,6 +54,12 @@ Use when pulling or downloading a new llamacpp model. The active ROCm image (kyu
 ```bash
 npx skills add av/skills --skill pull-llamacpp-model
 ```
+#### **[superclaude](./superclaude)**
+Configure and operate the Claude Code harness for large codebases. Builds CLAUDE.md hierarchies, scoped test/lint commands, file exclusions, codebase maps, hooks, skills, subagent strategies, and LSP/MCP wiring. Use when setting up Claude Code for a new repo, auditing an existing configuration, onboarding a team, or scaling from single-developer to org-wide deployment.
+
+```bash
+npx skills add av/skills --skill superclaude
+```
 #### **[run-llms](./run-llms)**
 Comprehensive guide for setting up and running local LLMs using Harbor. Use when user wants to run LLMs locally, set up or troubleshoot Ollama, Open WebUI, llama.cpp, vLLM, SearXNG, Open Terminal, or similar local AI services. Covers full setup from Docker prerequisites through running models, per-service configuration, VRAM optimization, GPU troubleshooting, web search integration, code execution, profiles, tunnels, and advanced features. Includes decision trees for autonomous agent workflows and step-by-step troubleshooting playbooks.
 
