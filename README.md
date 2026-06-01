@@ -18,6 +18,12 @@ Use when the user requests integration testing, feature validation, or test plan
 ```bash
 npx skills add av/skills --skill agent-integration-testing
 ```
+#### **[anneal](./anneal)**
+Use when the user wants to systematically fix AI code slop — duplicated logic, over-engineering, silent error swallowing, convention drift, cargo-cult patterns, and other LLM-introduced architectural decay — over a specified duration
+
+```bash
+npx skills add av/skills --skill anneal
+```
 #### **[boost-modules](./boost-modules)**
 Create custom modules for [Harbor Boost](https://github.com/av/harbor/tree/main/boost), an optimizing LLM proxy. Use when building Python modules that intercept/transform LLM chat completions—reasoning chains, prompt injection, structured outputs, artifacts, or custom workflows. Triggers on requests to create Boost modules, extend LLM behavior via proxy, or implement chat completion middleware.
 
