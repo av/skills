@@ -1,11 +1,13 @@
 ---
 name: bughunt
-description: End-to-end bug hunting pipeline — discover bugs in a scoped area using parallel subagents, independently triage each finding, fix confirmed issues with subagents, then audit all fixes against repo constraints and target platforms.
+description: Fully autonomous bug hunting pipeline — discover bugs in a scoped area using parallel subagents, independently triage each finding, fix confirmed issues with subagents, then audit all fixes against repo constraints and target platforms. Runs end-to-end without user interaction.
 ---
 
 # Bughunt
 
-Find, triage, fix, and audit bugs in a scoped area of a codebase. Four phases, each using subagents to parallelize work and provide independent assessments.
+Fully autonomous pipeline: find, triage, fix, and audit bugs in a scoped area of a codebase. Five phases, each using subagents to parallelize work and provide independent assessments.
+
+**This skill runs end-to-end without asking the user any questions.** Do not pause for confirmation, approval, or input between phases. Make autonomous decisions at every step — section splits, severity judgments, fix strategies, conflict resolution. Log progress to the report so the user can review the final output, but never block on user input.
 
 ## Parameters
 
@@ -28,14 +30,14 @@ Find, triage, fix, and audit bugs in a scoped area of a codebase. Four phases, e
 
 ## Phase 1 — Orient
 
-Read the target files. Identify section boundaries for parallel discovery.
+Read the target files yourself. Identify section boundaries for parallel discovery. Do not delegate this phase — you need the full picture to write good subagent prompts in later phases.
 
 Good splits follow the code's own structure:
 - **Per platform/backend** — if the code branches by OS, distro, or provider
 - **Per layer** — argument parsing, core logic, error handling, output formatting
 - **Per module** — one subagent per file or logical unit
 
-Write the section list and file ranges before proceeding. Each section needs enough context in isolation for a subagent to reason about it.
+Write the section list and file ranges, then proceed immediately to Discovery. Each section needs enough context in isolation for a subagent to reason about it.
 
 Create the output directory and initialize the report:
 
@@ -45,7 +47,7 @@ mkdir -p {OUTPUT_DIR}/evidence
 
 ## Phase 2 — Discover
 
-Launch one subagent per section, in parallel. Each subagent:
+Launch one subagent per section using the Agent tool, all in parallel (send all Agent calls in a single message). Each subagent:
 
 1. Reads the code for its section
 2. Looks for real bugs — not style nits, not hypotheticals
@@ -70,13 +72,11 @@ Launch one subagent per section, in parallel. Each subagent:
 
 ### After all discovery agents return
 
-Compile findings into the report. Deduplicate issues reported by multiple sections. Assign each a canonical ID. Update summary counts.
-
-Present the raw finding list to the user before proceeding to triage.
+Compile findings into the report. Deduplicate issues reported by multiple sections. Assign each a canonical ID. Update summary counts. Proceed immediately to Triage — do not wait for user input.
 
 ## Phase 3 — Triage
 
-Launch one subagent per finding, in parallel. Each triage agent:
+Launch one subagent per finding using the Agent tool, all in parallel (send all Agent calls in a single message). Each triage agent:
 
 1. Reads the relevant code fresh (no access to the discovery agent's reasoning)
 2. Independently assesses whether the bug is real
@@ -104,11 +104,11 @@ Launch one subagent per finding, in parallel. Each triage agent:
 - **DOWNGRADE** — bug is real but severity is wrong. Adjust and keep if still actionable.
 - **DISPUTED** — bug is not real, requires impossible preconditions, or has zero practical impact. Drop from the report.
 
-Update the report with triage results. Present the surviving issue list to the user before proceeding to fixes.
+Update the report with triage results. Proceed immediately to Fix — do not wait for user input.
 
 ## Phase 4 — Fix
 
-Launch one subagent per confirmed issue, in parallel. Each fix agent:
+Launch one subagent per confirmed issue using the Agent tool, all in parallel (send all Agent calls in a single message). Each fix agent:
 
 1. Reads the relevant code and surrounding context
 2. Investigates the root cause (not just the symptom)
@@ -141,9 +141,10 @@ Multiple agents may edit the same file. Applying edits in parallel causes confli
 
 ### After all fix agents return
 
-1. Check for overlapping edits in the same file — resolve conflicts manually
+1. Check for overlapping edits in the same file — resolve conflicts autonomously (prefer the fix for the higher-severity issue; if equal, keep the more minimal edit)
 2. Apply edits sequentially, one file at a time
 3. Run syntax/parse checks on every modified file (`bash -n`, `python -m py_compile`, `tsc --noEmit`, etc.)
+4. Proceed immediately to Audit — do not wait for user input
 
 ## Phase 5 — Audit
 
@@ -183,9 +184,11 @@ If a fix fails the audit:
 
 ## Guidance
 
+- **Fully autonomous.** Run all five phases without stopping for user input. Make every decision yourself — section splits, severity calls, fix strategies, conflict resolution, audit judgments. The user reviews the final report, not intermediate checkpoints.
+- **Subagents are your primary tool.** Use the Agent tool aggressively. Every phase after Orient must use parallel subagents. Launch all subagents for a phase in a single message to maximize parallelism. Do not do sequentially what subagents can do in parallel.
 - **Subagents are independent.** Each subagent sees only its prompt and the code it reads. It has no memory of other phases or other agents. Write prompts that are fully self-contained.
 - **Discovery is broad, triage is adversarial.** Discovery agents should cast a wide net. Triage agents should be skeptical — their job is to kill false positives, not confirm findings.
 - **Fixes are minimal.** A fix agent should change the fewest lines possible to resolve the confirmed bug. No cleanup, no refactoring, no "while I'm here" improvements.
 - **The audit catches what agents miss.** Agents don't have cross-platform knowledge baked in. The audit phase exists specifically to catch platform-specific mistakes, lint violations, and convention breaks that individual fix agents can't know about.
 - **Report incrementally.** Update the report after each phase completes. If the session is interrupted, the work so far is preserved.
-- **Present decisions to the user.** Show the finding list after discovery, the triage results after triage, and the fix list after fixes — before moving to the next phase. The user may want to skip, reprioritize, or add context.
+- **Log, don't ask.** Write findings, triage verdicts, fix summaries, and audit results into the report as you go. The user reads the final report — they do not participate during execution.

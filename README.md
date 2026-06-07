@@ -37,7 +37,7 @@ Systematically explore and test any software project (CLI, API, Backend, Library
 npx skills add av/skills --skill bugbash
 ```
 #### **[bughunt](./bughunt)**
-End-to-end bug hunting pipeline — discover bugs in a scoped area using parallel subagents, independently triage each finding, fix confirmed issues with subagents, then audit all fixes against repo constraints and target platforms.
+Fully autonomous bug hunting pipeline — discover bugs in a scoped area using parallel subagents, independently triage each finding, fix confirmed issues with subagents, then audit all fixes against repo constraints and target platforms. Runs end-to-end without user interaction.
 
 ```bash
 npx skills add av/skills --skill bughunt
