@@ -36,6 +36,12 @@ Systematically explore and test any software project (CLI, API, Backend, Library
 ```bash
 npx skills add av/skills --skill bugbash
 ```
+#### **[bughunt](./bughunt)**
+End-to-end bug hunting pipeline — discover bugs in a scoped area using parallel subagents, independently triage each finding, fix confirmed issues with subagents, then audit all fixes against repo constraints and target platforms.
+
+```bash
+npx skills add av/skills --skill bughunt
+```
 #### **[discipline](./discipline)**
 Bulletproof agent operating protocol. 15 failure-prevention rules distilled from 120+ real sessions and 10 agent definitions. Covers fabrication, constraint tracking, verification, scoping, retry discipline, and communication. Load before any task to prevent the most common agent failure modes.
 
