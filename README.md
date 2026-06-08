@@ -54,6 +54,12 @@ Timeboxed ideation on a topic using propose-and-critique subagent pairs. Use whe
 ```bash
 npx skills add av/skills --skill ideate
 ```
+#### **[make-video](./make-video)**
+>
+
+```bash
+npx skills add av/skills --skill make-video
+```
 #### **[preact-buildless-frontend](./preact-buildless-frontend)**
 Build-less ESM frontends that run directly in the browser without bundlers. Use this skill when creating static frontends, SPAs without build tools, prototypes, or when the user explicitly wants no Vite/Webpack/bundler. Covers import maps, CDN imports, cache-busting, hash routing, and performance patterns.
 
