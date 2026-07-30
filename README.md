@@ -24,6 +24,12 @@ Use when the user wants to systematically fix AI code slop — duplicated logic,
 ```bash
 npx skills add av/skills --skill anneal
 ```
+#### **[article-factory](./article-factory)**
+Produce a researched long-form article from a topic prompt via an orchestrated pipeline - research agent (first-person sources, working-definition gate), narrative-architecture outline, writer/cold-reviewer loop with an explicit ACCEPT/REVISE verdict contract, then a catalog-deslop pass with a regression gate. The orchestrator dispatches subagents only; the writer never judges its own draft. Use when the user says "article factory", "write an article about X", "run the article pipeline", or asks for a researched long-form piece produced end-to-end. For essays and micro posts in the user's own voice without a research stage, use the prose skill instead.
+
+```bash
+npx skills add av/skills --skill article-factory
+```
 #### **[boost-modules](./boost-modules)**
 Create custom modules for [Harbor Boost](https://github.com/av/harbor/tree/main/boost), an optimizing LLM proxy. Use when building Python modules that intercept/transform LLM chat completions—reasoning chains, prompt injection, structured outputs, artifacts, or custom workflows. Triggers on requests to create Boost modules, extend LLM behavior via proxy, or implement chat completion middleware.
 
@@ -42,6 +48,12 @@ Fully autonomous bug hunting pipeline — discover bugs in a scoped area using p
 ```bash
 npx skills add av/skills --skill bughunt
 ```
+#### **[catalog-deslop](./catalog-deslop)**
+Catalog-then-fix slop removal on an existing prose draft. Parallel catalog subagents inventory four slop categories (theatrics, overwrought register, corrective antithesis, dramatic short sentences), fix subagents repair only what a catalog names, mechanical lint + frequency analysis bracket the run, and a regression gate (lint delta, word count, cold meaning check) decides whether the result ships. Use when the user says "deslop this draft", "catalog deslop", "strip the AI patterns from this file", or as the final stage of the article-factory and mosaic-writing skills. For writing or redrafting prose from scratch, use the prose skill instead - this skill only repairs an existing draft in place.
+
+```bash
+npx skills add av/skills --skill catalog-deslop
+```
 #### **[discipline](./discipline)**
 Bulletproof agent operating protocol. 15 failure-prevention rules distilled from 120+ real sessions and 10 agent definitions. Covers fabrication, constraint tracking, verification, scoping, retry discipline, and communication. Load before any task to prevent the most common agent failure modes.
 
@@ -59,6 +71,12 @@ npx skills add av/skills --skill ideate
 
 ```bash
 npx skills add av/skills --skill make-video
+```
+#### **[mosaic-writing](./mosaic-writing)**
+Assemble a finished piece from human-written fragments via an orchestrated two-loop pipeline - an assembly loop (assembler + cold reviewer) that sequences the fragments into a draft, then a polish loop (polisher + cold reviewer), then frequency analysis and a catalog-deslop pass with a regression gate. Two modes with opposite fidelity contracts - stitch mode preserves the author's exact wording, narrative mode preserves every idea but may rewrite freely. Use when the user says "mosaic", "assemble my fragments", "stitch these notes into a post", or provides a fragments file to turn into a finished piece. For writing from a topic with research, use article-factory; for prose from scratch, use the prose skill.
+
+```bash
+npx skills add av/skills --skill mosaic-writing
 ```
 #### **[preact-buildless-frontend](./preact-buildless-frontend)**
 Build-less ESM frontends that run directly in the browser without bundlers. Use this skill when creating static frontends, SPAs without build tools, prototypes, or when the user explicitly wants no Vite/Webpack/bundler. Covers import maps, CDN imports, cache-busting, hash routing, and performance patterns.
