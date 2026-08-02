@@ -78,9 +78,9 @@ Track this checklist:
 1. **Clock.** Record start timestamp and deadline.
 2. **Branch.** Must be fresh — if `autoresearch/<tag>` exists or the tree is
    dirty, stop and tell the user.
-3. **Ledger.** Two files:
-   - `results.tsv` in the repo root, **untracked by git** (resets must never
-     destroy the record). Header row, tab-separated:
+3. **Ledger.** Two files, both in `/tmp` — never inside the target repo, so
+   no reset, clean, or subagent commit can ever touch the record:
+   - `/tmp/autoresearch-<tag>-<timestamp>.tsv`: header row, tab-separated:
      `commit	<metric>	cost	status	description`
      — status is `keep`, `discard`, or `crash`; cost is memory/VRAM/latency if
      the harness reports one, else `0`.
@@ -89,7 +89,7 @@ Track this checklist:
      (value + commit), and an `## Experiments` section.
 4. **Baseline.** Dispatch a subagent to run the experiment command
    **unmodified** and report the metric. Verify it from the log yourself.
-   Record it as row 1 of `results.tsv` (`keep`, `baseline`) and as best in the
+   Record it as row 1 of the ledger TSV (`keep`, `baseline`) and as best in the
    progress file. If the baseline crashes: fix-dispatch up to 3 times, then
    escalate — there is no run without a baseline.
 
@@ -113,7 +113,7 @@ Metric: <name>, <lower|higher> is better. Current best: <value>.
 Research focus: <verbatim focus, or "none: full mutable scope is fair game">.
 Every hypothesis you consider must stay inside the focus.
 
-Read <progress file path> and <repo>/results.tsv FIRST. They list every
+Read <progress file path> and <ledger tsv path> FIRST. They list every
 experiment already tried. Do NOT repeat any of them, including failures —
 a discard is information, not an invitation.
 
@@ -136,8 +136,8 @@ Return exactly:
 - Cost (memory/VRAM/latency if reported)
 - One suggested next experiment based on what you observed
 
-Do NOT decide keep-vs-discard, reset or advance the branch, or touch
-results.tsv. The orchestrator gates.
+Do NOT decide keep-vs-discard, reset or advance the branch, or write to
+the ledger files. The orchestrator gates.
 ```
 
 Pass ledger **paths**, never contents. No deadline awareness for subagents.
@@ -150,7 +150,10 @@ Feedback loop: never gate on the report alone.
    the raw log and match the report. Reported number absent from the log =
    hallucination → treat as crash.
 2. `git log --oneline -1` — the reported commit exists on the branch.
-3. `git status` — clean apart from `results.tsv` / `run.log`.
+3. `git status` — clean apart from `run.log`.
+4. `git diff <best commit>..<reported commit> --stat` — every touched file
+   is inside the mutable scope. A frozen-scope edit is metric gaming, not a
+   result: discard regardless of the reported value, and log it as such.
 
 ### 3. Gate
 
@@ -165,7 +168,7 @@ Feedback loop: never gate on the report alone.
 
 ### 4. Log
 
-Append one row to `results.tsv` and one entry to the progress file:
+Append one row to the ledger TSV and one entry to the progress file:
 
 ```markdown
 ### Experiment N — <time>
@@ -226,7 +229,7 @@ for the deadline):
 - Branch: autoresearch/<tag> at <best commit>
 - Kept changes: <one line each>
 - Nearest misses worth a future run: <bullets>
-- Ledger: results.tsv, <progress file path>
+- Ledger: <ledger tsv path>, <progress file path>
 ```
 
 Leave the branch checked out at the best commit. Never merge to the default
@@ -238,6 +241,7 @@ branch — that is the user's morning decision.
 - Two experiment subagents are running at once
 - You gated on a metric value you did not extract from the log yourself
 - A keep happened without the value beating the recorded best
+- A keep happened without you checking the diff stayed in mutable scope
 - `git status` showed a dirty tree and you dispatched anyway
 - You are composing a message to the user before the deadline
 - You have not run `date +%s` since the last subagent returned
