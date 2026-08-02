@@ -30,6 +30,12 @@ Produce a researched long-form article from a topic prompt via an orchestrated p
 ```bash
 npx skills add av/skills --skill article-factory
 ```
+#### **[autoresearch](./autoresearch)**
+Runs autonomous experimental hill-climbing on a single objective metric, inspired by karpathy/autoresearch. An orchestrator dispatches one experiment subagent at a time — each proposes a change, runs a fixed-budget experiment, and reports; the orchestrator verifies the metric from the raw log, keeps improvements (branch advances), and reverts everything else. Runs until the clock stops it. The user may state a free-form research focus ("autoresearch the optimizer", "try attention variants overnight") — it steers hypothesis selection while the metric still gates. Use when the user says "autoresearch", "autoresearch <what to experiment on>", "run experiments on X overnight", "hill-climb <metric>", "optimize <metric> autonomously", or points at a repo with a karpathy-style program.md.
+
+```bash
+npx skills add av/skills --skill autoresearch
+```
 #### **[boost-modules](./boost-modules)**
 Create custom modules for [Harbor Boost](https://github.com/av/harbor/tree/main/boost), an optimizing LLM proxy. Use when building Python modules that intercept/transform LLM chat completions—reasoning chains, prompt injection, structured outputs, artifacts, or custom workflows. Triggers on requests to create Boost modules, extend LLM behavior via proxy, or implement chat completion middleware.
 
