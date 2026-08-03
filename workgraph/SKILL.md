@@ -25,12 +25,18 @@ Plan ──► lint ──► ┌─► route ─► schedule ─► dispatch �
 ## Role and Iron Laws
 
 ```
-1. YOU DO NO WORK. You route, schedule, dispatch, gate, and log. Nothing else.
+1. YOU DO NO WORK. You route, schedule, dispatch, gate, and log. Exploring
+   the repo, reading source, or researching the goal IS work. Nothing else.
 2. THE GRAPH FILE IS GROUND TRUTH. Every state change lands in it, append-only.
 3. EVERY CYCLE HAS A BUDGET. An unbudgeted loop is a structural defect.
 4. NODES NEVER TALK TO EACH OTHER. Artifacts on edges, via the graph dir, only.
 5. INTEGRATION IS SERIALIZED. One merge into the trunk at a time, gated.
 ```
+
+Your entire tool surface: clock checks (`date +%s`), graph-dir reads and
+writes, dispatching subagents, evaluating returns, and gate spot-checks —
+re-running a verification command to test a subagent's claim is GATING, not
+work. "Let me just quickly check something" → no. Dispatch a subagent.
 
 Degrees of freedom are split on purpose:
 
@@ -115,11 +121,18 @@ Pass subagents **paths, never contents**. They read the graph dir themselves.
 
 ## Phase 1: Plan
 
-1. **Decompose.** Break the goal into nodes sized for one dispatch each: one
-   sentence of charter, concrete verification, obvious gate type. Draw edges
-   with explicit criteria, including the backward edges you already know you
-   want (verify→build on FAIL, gate→ideate on discard streak).
-2. **Lint the graph.** Hard failures, fix before anything runs:
+Planning intelligence comes from subagents — you never explore the repo,
+read source, or research the goal in your own context; code knowledge
+arrives in a planner's return. You brief, lint, accept or redispatch, write.
+
+1. **Brief a planner.** Dispatch a planner/scout subagent (two angles,
+   merged, for a wide or unfamiliar goal) with the goal, the scope, and the
+   graph-model rules above. It reads the repo and returns proposed nodes
+   (one-sentence charter, gate type, verification, heavy flag) and edges
+   with explicit criteria, including the backward edges it already wants
+   (verify→build on FAIL, gate→ideate on discard streak).
+2. **Lint the returned graph.** Yours — it operates on the graph, not the
+   repo. Hard failures; redispatch to the planner with findings until clean:
    - disconnected nodes or unreachable subgraphs
    - a cycle without a budget or without a satisfiable exit edge
    - an edge criterion not decidable from on-disk artifacts
@@ -129,11 +142,44 @@ Pass subagents **paths, never contents**. They read the graph dir themselves.
    cycle — stop and use the matching sibling skill instead. Say so to the
    user. Width and recovery are what justify the overhead.
 4. **Write the graph directory.** Root nodes (no incoming forward edges) →
-   `READY`. Record start time, deadline if any, compute slots.
+   `READY`. Record start, deadline if any, compute slots. Render the
+   initial mermaid overview (next section) — mandatory.
 5. **Baseline where a metric exists.** A `metric` subgraph needs a baseline
    node run and gated first — there is no best without it.
 
 Planning is the only phase where user interaction is allowed.
+
+## Graph State for the User — mermaid
+
+`graph.md` is the machine ledger; the user gets a picture — a mermaid
+`flowchart` in your chat message, never written into the graph dir.
+
+- **Initial overview is mandatory** — one render right after the graph
+  directory is written, before the first scheduling round.
+- Afterwards at your discretion, at meaningful state changes: merge landed,
+  escalation, major routing shift, final summary. Guidance, not a cadence.
+- Node IDs only, never charters; terse or no edge labels; status as
+  classDef color; visits as a `×N` suffix. One diagram, one compact legend
+  line, no legend walls. Fixed palette — same classes in every render:
+
+```mermaid
+flowchart LR
+  spec --> build["build ×2"] --> gate
+  gate -- FAIL --> build
+  gate --> merge
+  docs --> merge
+  class spec,docs verified
+  class build running
+  class gate,merge pending
+  classDef pending fill:#9e9e9e,color:#fff
+  classDef ready fill:#1e88e5,color:#fff
+  classDef running fill:#fb8c00,color:#fff
+  classDef verified fill:#43a047,color:#fff
+  classDef failed fill:#e53935,color:#fff
+  classDef escalated fill:#8e24aa,color:#fff
+```
+
+Legend line: `gray PENDING · blue READY · orange RUNNING · green VERIFIED · red FAILED · purple ESCALATED`
 
 ## Phase 2: The Loop
 
@@ -281,6 +327,8 @@ further is the user's decision.
 ## Red Flags — STOP and Reread This Skill
 
 - You are editing a file that is not inside `~/.harness/workgraph/<slug>/`
+- You are reading source, grepping, or researching yourself — planning too
+- The loop started without the initial mermaid overview render
 - Two mutating nodes are running with overlapping write scope
 - A node passed its gate on evidence you did not check yourself
 - A cycle is on visit 4 with a budget of 3
