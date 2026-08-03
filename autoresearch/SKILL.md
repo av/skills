@@ -48,6 +48,7 @@ Degrees of freedom are split on purpose:
 | Time budget per run | yes | 5 minutes wall clock |
 | Mutable scope | yes | `train.py` only |
 | Frozen scope | recommended | `prepare.py`, evaluation code, dependencies |
+| Byproducts to clean between runs | optional | `checkpoints/`, `__pycache__` |
 | Duration | yes | "overnight" = 8 hours |
 | Research focus | optional | "attention variants", "the optimizer only" |
 | Run tag | auto | date-based, e.g. `aug2` |
@@ -61,6 +62,11 @@ read it first and adopt its mechanics (metric, commands, scopes, budgets,
 logging) verbatim. A user-stated focus still overrides its open-ended charter
 for choosing hypotheses.
 
+**Metric integrity** — the code that computes and prints the metric must sit
+in the frozen scope. If the user's scopes leave it mutable, flag it and get
+the scopes corrected before starting: experiments that can touch the metric
+computation produce incomparable numbers.
+
 If required inputs are missing and no `program.md` supplies them, ask the user
 once, up front, for everything at once. After setup, never ask again.
 
@@ -70,27 +76,33 @@ Track this checklist:
 
 ```
 - [ ] 1. Clock: date +%s, compute deadline ("overnight" = 8h)
-- [ ] 2. Branch: git checkout -b autoresearch/<tag> from the default branch
+- [ ] 2. Branch: git -C <repo> checkout -b autoresearch/<tag> from current HEAD
 - [ ] 3. Ledger created
 - [ ] 4. Baseline run recorded as best
 ```
 
 1. **Clock.** Record start timestamp and deadline.
-2. **Branch.** Must be fresh — if `autoresearch/<tag>` exists or the tree is
-   dirty, stop and tell the user.
-3. **Ledger.** Two files, both in `/tmp` — never inside the target repo, so
-   no reset, clean, or subagent commit can ever touch the record:
-   - `/tmp/autoresearch-<tag>-<timestamp>.tsv`: header row, tab-separated:
+2. **Branch.** From current HEAD. Must be fresh — if `autoresearch/<tag>`
+   exists or the tree is dirty, stop and tell the user. Every git command in
+   this run uses `git -C <repo>` — never rely on cwd. This skill never runs
+   `git reset --hard`.
+3. **Ledger.** Two files:
+   - `results.tsv` in the repo root, **untracked by git** (resets must never
+     destroy the record). Header row, tab-separated:
      `commit	<metric>	cost	status	description`
-     — status is `keep`, `discard`, or `crash`; cost is memory/VRAM/latency if
-     the harness reports one, else `0`.
+     — status is `keep`, `keep (simplicity)`, `discard`, `discard (scope)`,
+     or `crash`; cost is memory/VRAM/latency if the harness reports one, else
+     `0`. Crashes log metric `NA`, never a number. `results.tsv` is the
+     source of truth for current best — the last `keep` row.
    - Progress file at `/tmp/autoresearch-<tag>-<timestamp>.md`: goal, focus
      (verbatim), metric spec, commands, scopes, start, deadline, current best
-     (value + commit), and an `## Experiments` section.
+     (value + commit), and an `## Experiments` section. Narrative mirror —
+     when it disagrees with `results.tsv`, `results.tsv` wins.
 4. **Baseline.** Dispatch a subagent to run the experiment command
    **unmodified** and report the metric. Verify it from the log yourself.
-   Record it as row 1 of the ledger TSV (`keep`, `baseline`) and as best in the
-   progress file. If the baseline crashes: fix-dispatch up to 3 times, then
+   Record it as row 1 of `results.tsv` (`keep`, `baseline`) and as best in the
+   progress file. If the baseline crashes: fix-dispatch up to 3 times (fixes
+   limited to the mutable scope — anything else escalates immediately), then
    escalate — there is no run without a baseline.
 
 Setup is the only phase where user interaction is allowed. Afterward the loop
@@ -113,7 +125,7 @@ Metric: <name>, <lower|higher> is better. Current best: <value>.
 Research focus: <verbatim focus, or "none: full mutable scope is fair game">.
 Every hypothesis you consider must stay inside the focus.
 
-Read <progress file path> and <ledger tsv path> FIRST. They list every
+Read <progress file path> and <repo>/results.tsv FIRST. They list every
 experiment already tried. Do NOT repeat any of them, including failures —
 a discard is information, not an invitation.
 
@@ -122,12 +134,14 @@ Your task:
    "suggested next" ideas from the ledger if any remain.
 2. Implement it in the mutable scope. Minimal, focused diff.
 3. git commit with a message stating the hypothesis.
-4. Run: <experiment command with output redirected to run.log>. Never let
-   run output into your context — redirect, then grep.
+4. Run: timeout <2x budget> <experiment command> > run.log 2>&1. Never let
+   run output into your context — redirect, then grep. Exit 124 = timed
+   out: treat as a crash.
 5. Extract the result: <extraction command>. Empty output = crash: read
    `tail -n 50 run.log`. Trivial cause (typo, missing import) — fix,
    commit, re-run once. Fundamentally broken idea — stop and report.
-6. If the run exceeds <2x budget>, kill it and treat as a crash.
+6. If you fixed a trivial crash, the fix commit is now HEAD — report the
+   FINAL commit hash (HEAD), never the first one.
 
 Return exactly:
 - Hypothesis (one line)
@@ -136,8 +150,8 @@ Return exactly:
 - Cost (memory/VRAM/latency if reported)
 - One suggested next experiment based on what you observed
 
-Do NOT decide keep-vs-discard, reset or advance the branch, or write to
-the ledger files. The orchestrator gates.
+Do NOT decide keep-vs-discard, reset or advance the branch, or touch
+results.tsv. The orchestrator gates.
 ```
 
 Pass ledger **paths**, never contents. No deadline awareness for subagents.
@@ -149,26 +163,34 @@ Feedback loop: never gate on the report alone.
 1. Run the extraction command on `run.log` yourself. The value must exist in
    the raw log and match the report. Reported number absent from the log =
    hallucination → treat as crash.
-2. `git log --oneline -1` — the reported commit exists on the branch.
-3. `git status` — clean apart from `run.log`.
-4. `git diff <best commit>..<reported commit> --stat` — every touched file
-   is inside the mutable scope. A frozen-scope edit is metric gaming, not a
-   result: discard regardless of the reported value, and log it as such.
+2. `git -C <repo> rev-parse HEAD` — the reported commit IS the current
+   HEAD. A mismatch means an unreported commit exists → treat as crash.
+3. `git -C <repo> status` — clean apart from `results.tsv` / `run.log`.
+4. `git -C <repo> diff <best>..HEAD --name-only` — every changed file is
+   inside the mutable scope. Any frozen-scope change → `discard (scope)`,
+   regardless of the metric value.
 
 ### 3. Gate
 
-- **Strictly better than best** → keep: branch stays, update best in the
-  progress file.
-- **Equal, worse, or crash** → discard: `git reset --hard <best commit>`.
-  Crashes log status `crash`, metric `0`.
+- **Strictly better than best** → keep: branch stays. An improvement within
+  known run-to-run noise of the metric is a tie, not a win — discard it.
+- **Equal, worse, or crash** → discard:
+  1. `git -C <repo> update-ref refs/autoresearch/<tag>/exp-N <commit>` —
+     the commit stays reachable for morning review.
+  2. `git -C <repo> reset --keep <best commit>` — never `--hard`. If
+     `--keep` refuses (dirty tree), `git -C <repo> stash push -u`, retry.
+  3. On crash: copy `run.log` to `/tmp/autoresearch-<tag>-exp<N>.log` first
+     — the next run overwrites it.
+  4. Remove any user-named byproducts so runs stay independent.
 - **Simplicity criterion** — the one judgment call you own: a change that
-  removes code at equal-or-marginally-different metric is a keep; a marginal
-  gain bought with disproportionate complexity is a discard. In doubt, the
-  metric wins.
+  removes code or cost at an equal-or-marginally-different metric may be
+  kept — log it as `keep (simplicity)` so the record shows the metric did
+  not decide. A marginal gain bought with disproportionate complexity is a
+  discard. In doubt, the metric wins.
 
 ### 4. Log
 
-Append one row to the ledger TSV and one entry to the progress file:
+Append one row to `results.tsv` and one entry to the progress file:
 
 ```markdown
 ### Experiment N — <time>
@@ -208,7 +230,7 @@ Every one of these thoughts is a trap:
 | "10 discards in a row — converged" | Discards are data. Change rung, dispatch. |
 | "Good enough to show the user" | Only after the deadline. Check the clock. |
 | "Remaining ideas are too radical" | Radical is the correct next rung. Dispatch. |
-| "One more run won't matter" | ~12 runs/hour. It matters. Dispatch. |
+| "One more run won't matter" | Remaining time ÷ per-run budget = runs left. It matters. Dispatch. |
 | "Let me inspect the training output" | No. Grep the metric line. Nothing else. |
 | "I should ask whether to continue" | The user is asleep. That is the point. |
 
@@ -219,7 +241,8 @@ Any variation of "maybe stop" → check the clock and dispatch again.
 Only after the deadline (let the in-flight experiment finish — never kill it
 for the deadline):
 
-1. Confirm the branch sits at the best commit (`git log --oneline`).
+1. Confirm the branch sits at the best commit (`git -C <repo> log --oneline`
+   vs the last `keep` row in `results.tsv`).
 2. Append to the progress file and report:
 
 ```markdown
@@ -229,7 +252,7 @@ for the deadline):
 - Branch: autoresearch/<tag> at <best commit>
 - Kept changes: <one line each>
 - Nearest misses worth a future run: <bullets>
-- Ledger: <ledger tsv path>, <progress file path>
+- Ledger: results.tsv, <progress file path>
 ```
 
 Leave the branch checked out at the best commit. Never merge to the default
@@ -240,8 +263,10 @@ branch — that is the user's morning decision.
 - You are editing a file in the target repo
 - Two experiment subagents are running at once
 - You gated on a metric value you did not extract from the log yourself
-- A keep happened without the value beating the recorded best
-- A keep happened without you checking the diff stayed in mutable scope
+- A keep happened without the value beating the recorded best — and it was
+  not logged as `keep (simplicity)`
+- You typed `git reset --hard`, or any git command without `-C <repo>`
+- A diff touched the frozen scope and you gated on the metric anyway
 - `git status` showed a dirty tree and you dispatched anyway
 - You are composing a message to the user before the deadline
 - You have not run `date +%s` since the last subagent returned
