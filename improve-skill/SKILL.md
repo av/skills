@@ -1,6 +1,6 @@
 ---
 name: improve-skill
-description: Improve an existing agent SKILL.md through one gated cycle: select the target (default this skill), snapshot the committed baseline, diagnose against skill-design-principles plus four rubric dimensions, apply exactly one focused change, and ship only if a different agent than the author PASSes with quoted evidence. Use when the user says "improve this skill", "improve-skill", "iterate on SKILL.md", or "apply skill-design-principles to a skill". Do not use for code slop over a duration (anneal), generic timeboxed work (timeboxed-iterating), graph orchestration (workgraph), or metric hill-climb on a codebase (autoresearch).
+description: Improve an existing agent SKILL.md through one gated cycle: select the target (default this skill), snapshot the committed baseline, diagnose against skill-design-principles plus four rubric dimensions, apply exactly one focused change, and ship only if a different agent than the author PASSes with quoted evidence. Use when the user says "improve this skill", "improve-skill", "iterate on SKILL.md", or "apply skill-design-principles to a skill". Do not use for code slop over a duration (anneal), generic timeboxed work (timeboxed-iterating), graph orchestration (workgraph), metric hill-climb on a codebase (autoresearch), or stripping slop from existing prose (catalog-deslop).
 ---
 
 # Improve Skill
@@ -227,7 +227,7 @@ You are not the judge. Do not override FAIL because the diff looks fine.
 | Hand-edited README catalog | generate.ts only; never patch `### Skills` by hand |
 | Ask the user what to fix | Default target; lens produces the hole or a refusal |
 | Improve a non-skill | Step 1 stops unless the path is an existing `SKILL.md` |
-| Sibling collision (duration work, code slop, graphs, metric loops) | Description excludes anneal, timeboxed-iterating, workgraph, autoresearch |
+| Sibling collision (duration work, code slop, graphs, metric loops, prose deslop) | Description excludes anneal, timeboxed-iterating, workgraph, autoresearch, catalog-deslop |
 
 ## Red flags — stop and reread
 
