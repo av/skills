@@ -142,7 +142,30 @@ deno run --allow-read --allow-write scripts/generate.ts
 
 Never hand-patch the root `### Skills` list.
 
-If the author touches anything outside the named hole, revert those extras before gating.
+Then revert extras before gating. Reuse `$skill_dir`, `$d`, and `$repo` from step 2. If `$skill_dir` is unset or `"$skill_dir/SKILL.md"` is not the live candidate, stop. Do not invent a revert.
+
+An extra is a dirty path under `$skill_dir` that is not `$skill_dir/SKILL.md`, not `$skill_dir/README.md`, and not backtick-quoted (relative to `$skill_dir`, or as `$skill_dir/...`) in the `- Change:` line of `$d/diagnosis.md`. Generated `$repo/README.md` is not an extra. A new or non-`SKILL.md` path is kept only when that Change line quotes it.
+
+```bash
+change=$(sed -n 's/^- Change: //p' "$d/diagnosis.md")
+prefix=$(python3 -c "import os; print(os.path.relpath('$skill_dir', '$repo'))")
+git -C "$repo" status --porcelain -u -- "$skill_dir" | while IFS= read -r line; do
+  path="${line#???}"
+  rel="${path#"$prefix"/}"
+  if [ "$rel" = "SKILL.md" ] || [ "$rel" = "README.md" ]; then
+    continue
+  fi
+  case "$change" in
+    *'`'"$rel"'`'*) continue ;;
+    *'`'"$skill_dir/$rel"'`'*) continue ;;
+  esac
+  if [ -e "$d/baseline/$rel" ]; then
+    git -C "$repo" checkout HEAD -- "$path"
+  else
+    rm -rf "$repo/$path"
+  fi
+done
+```
 
 ### 5. Independent gate
 
@@ -228,7 +251,7 @@ You are not the judge. Do not override FAIL because the diff looks fine.
 |---|---|
 | Author declares the new version better | Judge is a different agent; self-score is not a verdict |
 | No subagent available | Stop at baseline; do not self-score |
-| Kitchen-sink rewrite | Diagnosis names one hole; extras revert before the gate |
+| Kitchen-sink rewrite | Diagnosis names one hole; step 4 reverts dirty `$skill_dir` paths that are not `SKILL.md`, not generated `README.md`, and not Change-quoted |
 | Edit with no snapshot | Step 2 runs before any write; stop if `$d/baseline/SKILL.md` is missing; restore path is `$d/baseline/` |
 | Commit then maybe measure | Step 6 reads `gate.md` first; FAIL does not `git commit` |
 | Judge returns no `gate.md` / no `Verdict:` | Step 6 still runs; missing or unparseable → FAIL restore; do not write `gate.md`; do not commit |
@@ -264,3 +287,4 @@ You are not the judge. Do not override FAIL because the diff looks fine.
 - The hole is a wording preference (rephrase, shorter, synonym, restated protection) and you are about to edit anyway.
 - The user named two skills (or all skills) and you are about to pick one or run both.
 - The user named a path that is not an existing `SKILL.md` (or skill directory) and you are about to default to this skill.
+- Dirty extras remain under `$skill_dir` (not `SKILL.md`, not generated `README.md`, not Change-quoted) and you are about to gate.
