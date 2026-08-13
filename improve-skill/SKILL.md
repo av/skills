@@ -38,9 +38,7 @@ Out of scope: README, cheatsheet, harness files, new skills, application code, d
 
 ## Working files
 
-```bash
-d=/tmp/improve-skill-<slug>-$(date +%s); mkdir -p "$d/baseline"
-```
+`$d` is created in step 2 (`/tmp/improve-skill-<target-basename>-<epoch>/`).
 
 ```
 baseline/          # committed (or pre-edit) copy of the skill tree
@@ -68,21 +66,26 @@ select-target → baseline → diagnose → one-change → independent-gate
 
 ### 2. Capture baseline
 
-Do this **before** any edit. Run from a shell; substitute the target skill directory (e.g. `improve-skill`):
+Do this **before** any edit. `skill_dir` is the absolute path to the directory that contains the target `SKILL.md`. Run from a shell:
 
 ```bash
-repo=$(git -C <skill-dir> rev-parse --show-toplevel)
-rel=$(python3 -c "import os; print(os.path.relpath('<skill-dir>', '$repo'))")
+skill_dir=<absolute path>
+slug=$(basename "$skill_dir")
+d=/tmp/improve-skill-$slug-$(date +%s)
+mkdir -p "$d/baseline"
+repo=$(git -C "$skill_dir" rev-parse --show-toplevel)
+rel=$(python3 -c "import os; print(os.path.relpath('$skill_dir', '$repo'))")
 if git -C "$repo" rev-parse --verify --quiet "HEAD:$rel" >/dev/null; then
   git -C "$repo" archive HEAD "$rel" | tar -x -C "$d/baseline" --strip-components=1
 else
-  cp <skill-dir>/SKILL.md "$d/baseline/SKILL.md"
-  if [ -d <skill-dir>/references ]; then cp -R <skill-dir>/references "$d/baseline/references"; fi
+  cp "$skill_dir/SKILL.md" "$d/baseline/SKILL.md"
+  if [ -d "$skill_dir/references" ]; then cp -R "$skill_dir/references" "$d/baseline/references"; fi
 fi
 git -C "$repo" rev-parse --short HEAD > "$d/baseline-rev.txt"
 ```
 
-If `HEAD:<skill-dir>` exists, that tree is the baseline even when the working tree is dirty. Restore uses `$d/baseline/`.
+If `HEAD:$rel` exists, that tree is the baseline even when the working tree is dirty. Restore uses `$d/baseline/`.
+If `$d/baseline/SKILL.md` is missing, stop. Do not edit. Do not invent a baseline.
 
 ### 3. Diagnose
 
@@ -217,7 +220,7 @@ You are not the judge. Do not override FAIL because the diff looks fine.
 | Author declares the new version better | Judge is a different agent; self-score is not a verdict |
 | No subagent available | Stop at baseline; do not self-score |
 | Kitchen-sink rewrite | Diagnosis names one hole; extras revert before the gate |
-| Edit with no snapshot | Step 2 runs before any write; restore path is `$d/baseline/` |
+| Edit with no snapshot | Step 2 runs before any write; stop if `$d/baseline/SKILL.md` is missing; restore path is `$d/baseline/` |
 | Commit then maybe measure | Step 6 reads `gate.md` first; FAIL does not `git commit` |
 | Catalog description becomes `>` | Single-line `description:` required; generate.ts after description edits |
 | Hand-edited README catalog | generate.ts only; never patch `### Skills` by hand |
@@ -234,3 +237,4 @@ You are not the judge. Do not override FAIL because the diff looks fine.
 - You are hand-editing a README.
 - The working tree still has the candidate after a FAIL.
 - You skipped baseline because it is a small edit.
+- `$d/baseline/SKILL.md` is missing and you are about to edit.
