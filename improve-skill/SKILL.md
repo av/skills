@@ -207,7 +207,8 @@ Record the hash in `log.md`.
 
 ```bash
 cp "$d/baseline/SKILL.md" "$skill_dir/SKILL.md"
-if [ -d "$d/baseline/references" ]; then rm -rf "$skill_dir/references"; cp -R "$d/baseline/references" "$skill_dir/references"; fi
+rm -rf "$skill_dir/references"
+if [ -d "$d/baseline/references" ]; then cp -R "$d/baseline/references" "$skill_dir/references"; fi
 if [ -f "$repo/scripts/generate.ts" ]; then
   (cd "$repo" && deno run --allow-read --allow-write scripts/generate.ts)
 fi
@@ -228,6 +229,7 @@ You are not the judge. Do not override FAIL because the diff looks fine.
 | Commit then maybe measure | Step 6 reads `gate.md` first; FAIL does not `git commit` |
 | Judge returns no `gate.md` / no `Verdict:` | Step 6 still runs; missing or unparseable → FAIL restore; do not write `gate.md`; do not commit |
 | FAIL restore or PASS add hits the wrong tree | Step 6 reuses `$skill_dir` from step 2; stop if unset or not the live candidate |
+| FAIL restore leaves newly added `references/` | Always `rm -rf "$skill_dir/references"`; copy from `$d/baseline/references` only if that dir exists |
 | Catalog description becomes `>` | Single-line `description:` required; generate.ts after description edits |
 | Hand-edited README catalog | generate.ts only; never patch `### Skills` by hand |
 | Ask the user what to fix | Default target; lens produces the hole or a refusal |
@@ -247,4 +249,5 @@ You are not the judge. Do not override FAIL because the diff looks fine.
 - You skipped baseline because it is a small edit.
 - `$d/baseline/SKILL.md` is missing and you are about to edit.
 - `$skill_dir` is unset (or not the live candidate) and you are about to `git add` or restore.
+- Live `references/` is still present after a FAIL and `$d/baseline/references` was missing.
 - You are scoring known-bad from memory instead of reading this skill's `references/known-bad.md`.
