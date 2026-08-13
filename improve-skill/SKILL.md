@@ -84,13 +84,12 @@ rel=$(python3 -c "import os; print(os.path.relpath('$skill_dir', '$repo'))")
 if git -C "$repo" rev-parse --verify --quiet "HEAD:$rel" >/dev/null; then
   git -C "$repo" archive HEAD "$rel" | tar -x -C "$d/baseline" --strip-components=1
 else
-  cp "$skill_dir/SKILL.md" "$d/baseline/SKILL.md"
-  if [ -d "$skill_dir/references" ]; then cp -R "$skill_dir/references" "$d/baseline/references"; fi
+  cp -R "$skill_dir/." "$d/baseline/"
 fi
 git -C "$repo" rev-parse --short HEAD > "$d/baseline-rev.txt"
 ```
 
-If `HEAD:$rel` exists, that tree is the baseline even when the working tree is dirty. Restore uses `$d/baseline/`.
+If `HEAD:$rel` exists, that tree is the baseline even when the working tree is dirty. If it does not, the live `$skill_dir` tree is the baseline — not only `SKILL.md` + `references/`. Restore uses `$d/baseline/`.
 If `$d/baseline/SKILL.md` is missing, stop. Do not edit. Do not invent a baseline.
 
 ### 3. Diagnose
@@ -236,6 +235,7 @@ You are not the judge. Do not override FAIL because the diff looks fine.
 | FAIL restore or PASS add hits the wrong tree | Step 6 reuses `$skill_dir` from step 2; stop if unset or not the live candidate |
 | FAIL restore leaves newly added `references/` | Always `rm -rf "$skill_dir/references"`; copy from `$d/baseline/references` only if that dir exists |
 | FAIL restore leaves newly added files outside `references/` | Run `references/restore.md` next to this file: overlay `$d/baseline/`, delete live paths with no baseline counterpart |
+| Untracked fallback omits `assets/` or extra root files | Step 2 else copies the whole `$skill_dir` tree; FAIL extra-delete cannot drop pre-existing extras |
 | Catalog description becomes `>` | Single-line `description:` required; generate.ts after description edits |
 | Hand-edited README catalog | generate.ts only; never patch `### Skills` by hand |
 | Ask the user what to fix | Default target; lens produces the hole or a refusal |
@@ -256,6 +256,7 @@ You are not the judge. Do not override FAIL because the diff looks fine.
 - The working tree still has the candidate after a FAIL.
 - You skipped baseline because it is a small edit.
 - `$d/baseline/SKILL.md` is missing and you are about to edit.
+- The target is untracked and `$d/baseline/` is missing live `assets/` (or extra root files) and you are about to edit.
 - `$skill_dir` is unset (or not the live candidate) and you are about to `git add` or restore.
 - Live `references/` is still present after a FAIL and `$d/baseline/references` was missing.
 - Live `assets/` or an extra root file is still present after a FAIL and `$d/baseline/` did not have it.
