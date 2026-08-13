@@ -185,12 +185,12 @@ You do not write `gate.md`. If the judge returns without a `Verdict:` line, trea
 
 ### 6. Commit only on PASS
 
-Read `$d/gate.md`.
+Read `$d/gate.md`. Reuse `$skill_dir`, `$d`, and `$repo` from step 2. If `$skill_dir` is unset or `"$skill_dir/SKILL.md"` is not the live candidate, stop. Do not invent an add or restore path.
 
 **PASS**
 
 ```bash
-git -C "$repo" add <skill-dir>
+git -C "$repo" add "$skill_dir"
 if [ -f "$repo/scripts/generate.ts" ]; then git -C "$repo" add README.md; fi
 git -C "$repo" commit -m "<prefix>improve-skill: <dimension> — <one line>"
 ```
@@ -202,8 +202,8 @@ Record the hash in `log.md`.
 **FAIL**
 
 ```bash
-cp "$d/baseline/SKILL.md" <skill-dir>/SKILL.md
-if [ -d "$d/baseline/references" ]; then rm -rf <skill-dir>/references; cp -R "$d/baseline/references" <skill-dir>/references; fi
+cp "$d/baseline/SKILL.md" "$skill_dir/SKILL.md"
+if [ -d "$d/baseline/references" ]; then rm -rf "$skill_dir/references"; cp -R "$d/baseline/references" "$skill_dir/references"; fi
 if [ -f "$repo/scripts/generate.ts" ]; then
   (cd "$repo" && deno run --allow-read --allow-write scripts/generate.ts)
 fi
@@ -222,6 +222,7 @@ You are not the judge. Do not override FAIL because the diff looks fine.
 | Kitchen-sink rewrite | Diagnosis names one hole; extras revert before the gate |
 | Edit with no snapshot | Step 2 runs before any write; stop if `$d/baseline/SKILL.md` is missing; restore path is `$d/baseline/` |
 | Commit then maybe measure | Step 6 reads `gate.md` first; FAIL does not `git commit` |
+| FAIL restore or PASS add hits the wrong tree | Step 6 reuses `$skill_dir` from step 2; stop if unset or not the live candidate |
 | Catalog description becomes `>` | Single-line `description:` required; generate.ts after description edits |
 | Hand-edited README catalog | generate.ts only; never patch `### Skills` by hand |
 | Ask the user what to fix | Default target; lens produces the hole or a refusal |
@@ -238,3 +239,4 @@ You are not the judge. Do not override FAIL because the diff looks fine.
 - The working tree still has the candidate after a FAIL.
 - You skipped baseline because it is a small edit.
 - `$d/baseline/SKILL.md` is missing and you are about to edit.
+- `$skill_dir` is unset (or not the live candidate) and you are about to `git add` or restore.
