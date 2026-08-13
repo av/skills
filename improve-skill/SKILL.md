@@ -105,6 +105,8 @@ Read the target `SKILL.md` and any `references/` one level under it. Write `$d/d
    - **Procedure completeness** — no step the skill claims to require is missing or "figure it out".
    - **Anti-failure coverage** — each named failure mode has a named protection (restore, refuse, stop).
 
+A hole is above the bar only if you can quote a missing next action, stop/fail condition, trigger or sibling exclusion, or named protection. Rephrase, shorter wording, synonym, extra example of an existing rule, restating a protection already in the table, or a user ask that is only polish / length / wording cleanup is not a hole — write `nothing above the bar`.
+
 Write exactly one of:
 
 ```markdown
@@ -236,6 +238,7 @@ You are not the judge. Do not override FAIL because the diff looks fine.
 | Improve a non-skill | Step 1 stops unless the path is an existing `SKILL.md` |
 | Sibling collision (duration work, code slop, graphs, metric loops, prose deslop) | Description excludes anneal, timeboxed-iterating, workgraph, autoresearch, catalog-deslop |
 | Known-bad scored from memory | Judge reads this skill's `references/known-bad.md`; any fixture match → FAIL |
+| Cosmetic-only / rephrase cycle | Step 3 refuses unless the hole quotes a missing action, stop, exclusion, or protection; user-asked polish is `nothing above the bar` |
 
 ## Red flags — stop and reread
 
@@ -251,3 +254,4 @@ You are not the judge. Do not override FAIL because the diff looks fine.
 - `$skill_dir` is unset (or not the live candidate) and you are about to `git add` or restore.
 - Live `references/` is still present after a FAIL and `$d/baseline/references` was missing.
 - You are scoring known-bad from memory instead of reading this skill's `references/known-bad.md`.
+- The hole is a wording preference (rephrase, shorter, synonym, restated protection) and you are about to edit anyway.
