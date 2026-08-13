@@ -221,13 +221,30 @@ Parse `$d/gate.md` if it exists. Do not write it. PASS only when a `Verdict: PAS
 
 **PASS**
 
+Add only `$skill_dir/SKILL.md`, `$skill_dir/README.md` if present, paths backtick-quoted in the `- Change:` line (same contract as step 4), and `$repo/README.md` if generate.ts exists. Do not `git add "$skill_dir"`. If any other dirty path remains under `$skill_dir`, stop — do not commit.
+
 ```bash
-git -C "$repo" add "$skill_dir"
-if [ -f "$repo/scripts/generate.ts" ]; then git -C "$repo" add README.md; fi
+change=$(sed -n 's/^- Change: //p' "$d/diagnosis.md")
+prefix=$(python3 -c "import os; print(os.path.relpath('$skill_dir', '$repo'))")
+git -C "$repo" add -- "$skill_dir/SKILL.md"
+if [ -f "$skill_dir/README.md" ]; then git -C "$repo" add -- "$skill_dir/README.md"; fi
+if [ -f "$repo/scripts/generate.ts" ]; then git -C "$repo" add -- README.md; fi
+git -C "$repo" status --porcelain -u -- "$skill_dir" | while IFS= read -r line; do
+  path="${line#???}"
+  rel="${path#"$prefix"/}"
+  case "$change" in
+    *'`'"$rel"'`'*) git -C "$repo" add -- "$path" ;;
+    *'`'"$skill_dir/$rel"'`'*) git -C "$repo" add -- "$path" ;;
+  esac
+done
+if git -C "$repo" status --porcelain -u -- "$skill_dir" | grep -q '^.[^ ]'; then
+  echo "extras remain under $skill_dir; stop; do not commit"
+  exit 1
+fi
 git -C "$repo" commit -m "<prefix>improve-skill: <dimension> — <one line>"
 ```
 
-`<dimension>` is the name from `diagnosis.md`. `<prefix>` is the caller's required prefix plus a trailing space, or empty. Add only the skill directory and generated README files.
+`<dimension>` is the name from `diagnosis.md`. `<prefix>` is the caller's required prefix plus a trailing space, or empty.
 
 Record the hash in `log.md`.
 
@@ -252,6 +269,7 @@ You are not the judge. Do not override FAIL because the diff looks fine.
 | Author declares the new version better | Judge is a different agent; self-score is not a verdict |
 | No subagent available | Stop at baseline; do not self-score |
 | Kitchen-sink rewrite | Diagnosis names one hole; step 4 reverts dirty `$skill_dir` paths that are not `SKILL.md`, not generated `README.md`, and not Change-quoted |
+| PASS add stages extras | Do not `git add "$skill_dir"`; add `SKILL.md`, generated `README.md`, and Change-quoted paths only; stop if extras remain |
 | Edit with no snapshot | Step 2 runs before any write; stop if `$d/baseline/SKILL.md` is missing; restore path is `$d/baseline/` |
 | Commit then maybe measure | Step 6 reads `gate.md` first; FAIL does not `git commit` |
 | Judge returns no `gate.md` / no `Verdict:` | Step 6 still runs; missing or unparseable → FAIL restore; do not write `gate.md`; do not commit |
@@ -288,3 +306,4 @@ You are not the judge. Do not override FAIL because the diff looks fine.
 - The user named two skills (or all skills) and you are about to pick one or run both.
 - The user named a path that is not an existing `SKILL.md` (or skill directory) and you are about to default to this skill.
 - Dirty extras remain under `$skill_dir` (not `SKILL.md`, not generated `README.md`, not Change-quoted) and you are about to gate.
+- You are about to `git add "$skill_dir"` (the whole directory) or extras remain under `$skill_dir` and you are about to commit.
