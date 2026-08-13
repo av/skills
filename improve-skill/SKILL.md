@@ -181,11 +181,13 @@ known-bad match. 0 BETTER (rephrase, length-only, synonym churn) is FAIL.
 Length is not a dimension. "Looks better" without quotes is FAIL.
 ```
 
-You do not write `gate.md`. If the judge returns without a `Verdict:` line, treat as FAIL.
+You do not write `gate.md`. After the judge returns, go to step 6 even when `$d/gate.md` or a `Verdict:` line is missing. Do not invent either.
 
 ### 6. Commit only on PASS
 
-Read `$d/gate.md`. Reuse `$skill_dir`, `$d`, and `$repo` from step 2. If `$skill_dir` is unset or `"$skill_dir/SKILL.md"` is not the live candidate, stop. Do not invent an add or restore path.
+Reuse `$skill_dir`, `$d`, and `$repo` from step 2. If `$skill_dir` is unset or `"$skill_dir/SKILL.md"` is not the live candidate, stop. Do not invent an add or restore path.
+
+Parse `$d/gate.md` if it exists. Do not write it. PASS only when a `Verdict: PASS` line is present and no `Verdict: FAIL` line is present. Otherwise FAIL — missing file, missing `Verdict:`, unparseable, or FAIL.
 
 **PASS**
 
@@ -209,7 +211,7 @@ if [ -f "$repo/scripts/generate.ts" ]; then
 fi
 ```
 
-Do not commit. Record the judge's first failing clause in `log.md`.
+Do not commit. Record the judge's first failing clause in `log.md`, or `missing Verdict:` if the file or `Verdict:` line is absent.
 
 You are not the judge. Do not override FAIL because the diff looks fine.
 
@@ -222,6 +224,7 @@ You are not the judge. Do not override FAIL because the diff looks fine.
 | Kitchen-sink rewrite | Diagnosis names one hole; extras revert before the gate |
 | Edit with no snapshot | Step 2 runs before any write; stop if `$d/baseline/SKILL.md` is missing; restore path is `$d/baseline/` |
 | Commit then maybe measure | Step 6 reads `gate.md` first; FAIL does not `git commit` |
+| Judge returns no `gate.md` / no `Verdict:` | Step 6 still runs; missing or unparseable → FAIL restore; do not write `gate.md`; do not commit |
 | FAIL restore or PASS add hits the wrong tree | Step 6 reuses `$skill_dir` from step 2; stop if unset or not the live candidate |
 | Catalog description becomes `>` | Single-line `description:` required; generate.ts after description edits |
 | Hand-edited README catalog | generate.ts only; never patch `### Skills` by hand |
@@ -232,6 +235,7 @@ You are not the judge. Do not override FAIL because the diff looks fine.
 ## Red flags — stop and reread
 
 - You are about to commit without a `Verdict: PASS` written by someone else.
+- `$d/gate.md` is missing (or has no `Verdict:`) and you are about to commit or leave the candidate in the tree.
 - You scored the change yourself.
 - `diagnosis.md` lists more than one hole and you are fixing them all.
 - You asked the user what to change.
