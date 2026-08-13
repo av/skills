@@ -49,6 +49,8 @@ log.md             # append-only
 
 Pass **paths**, not file contents, to the author and the judge.
 
+`references/` next to this file are procedure helpers. `$skill_dir/references/` is the target's. They coincide only when the target is this skill.
+
 ## Process
 
 ```
@@ -139,7 +141,7 @@ If the author touches anything outside the named hole, revert those extras befor
 
 ### 5. Independent gate
 
-Dispatch a **new** agent. Not you. Not the author. Give it only the baseline path, the live candidate path, and this section.
+Dispatch a **new** agent. Not you. Not the author. Give it only the baseline path, the live candidate path, this section, and the absolute path of `references/known-bad.md` next to this file.
 
 Judge prompt (fill the brackets, keep the rest):
 
@@ -147,6 +149,7 @@ Judge prompt (fill the brackets, keep the rest):
 You are an independent skill judge. You did not author this change.
 Baseline: < $d/baseline/SKILL.md >
 Candidate: < live SKILL.md path >
+Known-bad fixtures: <absolute path of references/known-bad.md next to this skill>
 Also read sibling files in each tree if present.
 
 Do not improve the candidate. Do not take the author's word.
@@ -165,10 +168,9 @@ Do not improve the candidate. Do not take the author's word.
      weakened to judgment
    - Anti-failure coverage: a named failure mode newly protected vs a
      protection removed
-3. Known-bad — FAIL if the candidate matches: stub with no steps; manifesto
-   with no sequence; triggerless description; author told to self-score;
-   improve then commit with no independent FAIL path; placeholder/TODO body;
-   user must supply the diagnosis or the change.
+3. Known-bad — read that fixtures file. FAIL if the candidate matches any
+   fixture (same shape, not only byte-identical). Do not invent shapes.
+   Do not skip a fixture because the candidate added sentences.
 
 Write < $d/gate.md > as:
 - validity: PASS or FAIL + first miss
@@ -231,6 +233,7 @@ You are not the judge. Do not override FAIL because the diff looks fine.
 | Ask the user what to fix | Default target; lens produces the hole or a refusal |
 | Improve a non-skill | Step 1 stops unless the path is an existing `SKILL.md` |
 | Sibling collision (duration work, code slop, graphs, metric loops, prose deslop) | Description excludes anneal, timeboxed-iterating, workgraph, autoresearch, catalog-deslop |
+| Known-bad scored from memory | Judge reads this skill's `references/known-bad.md`; any fixture match → FAIL |
 
 ## Red flags — stop and reread
 
@@ -244,3 +247,4 @@ You are not the judge. Do not override FAIL because the diff looks fine.
 - You skipped baseline because it is a small edit.
 - `$d/baseline/SKILL.md` is missing and you are about to edit.
 - `$skill_dir` is unset (or not the live candidate) and you are about to `git add` or restore.
+- You are scoring known-bad from memory instead of reading this skill's `references/known-bad.md`.
