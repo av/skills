@@ -62,9 +62,12 @@ select-target → baseline → diagnose → one-change → independent-gate
 
 ### 1. Select target
 
-1. If the user gave an existing `…/SKILL.md` (or a skill directory that contains one), that is the target.
-2. Otherwise the target is this skill: the `SKILL.md` in the same directory as the file you are reading.
-3. Confirm the file exists and YAML `name:` equals the directory name. If not, stop.
+Start-here checklist — first match wins:
+
+1. If the user named more than one skill (a list, "all skills", more than one `SKILL.md` or skill directory), stop. One cycle accepts one target. Do not pick a favorite. Do not ask which.
+2. If the user gave an existing `…/SKILL.md` (or a skill directory that contains one), that is the target.
+3. Otherwise the target is this skill: the `SKILL.md` in the same directory as the file you are reading.
+4. Confirm the file exists and YAML `name:` equals the directory name. If not, stop.
 
 ### 2. Capture baseline
 
@@ -236,6 +239,7 @@ You are not the judge. Do not override FAIL because the diff looks fine.
 | Hand-edited README catalog | generate.ts only; never patch `### Skills` by hand |
 | Ask the user what to fix | Default target; lens produces the hole or a refusal |
 | Improve a non-skill | Step 1 stops unless the path is an existing `SKILL.md` |
+| More than one target | Step 1 stops; one cycle accepts one target |
 | Sibling collision (duration work, code slop, graphs, metric loops, prose deslop) | Description excludes anneal, timeboxed-iterating, workgraph, autoresearch, catalog-deslop |
 | Known-bad scored from memory | Judge reads this skill's `references/known-bad.md`; any fixture match → FAIL |
 | Cosmetic-only / rephrase cycle | Step 3 refuses unless the hole quotes a missing action, stop, exclusion, or protection; user-asked polish is `nothing above the bar` |
@@ -255,3 +259,4 @@ You are not the judge. Do not override FAIL because the diff looks fine.
 - Live `references/` is still present after a FAIL and `$d/baseline/references` was missing.
 - You are scoring known-bad from memory instead of reading this skill's `references/known-bad.md`.
 - The hole is a wording preference (rephrase, shorter, synonym, restated protection) and you are about to edit anyway.
+- The user named two skills (or all skills) and you are about to pick one or run both.
