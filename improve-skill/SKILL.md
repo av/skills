@@ -65,9 +65,10 @@ select-target → baseline → diagnose → one-change → independent-gate
 Start-here checklist — first match wins:
 
 1. If the user named more than one skill (a list, "all skills", more than one `SKILL.md` or skill directory), stop. One cycle accepts one target. Do not pick a favorite. Do not ask which.
-2. If the user gave an existing `…/SKILL.md` (or a skill directory that contains one), that is the target.
-3. Otherwise the target is this skill: the `SKILL.md` in the same directory as the file you are reading.
-4. Confirm the file exists and YAML `name:` equals the directory name. If not, stop.
+2. If the user named a path that is not an existing `*/SKILL.md` and not a skill directory that contains one, stop and say so. Do not default to this skill. Do not ask them what to change.
+3. If the user gave an existing `…/SKILL.md` (or a skill directory that contains one), that is the target.
+4. Otherwise the target is this skill: the `SKILL.md` in the same directory as the file you are reading.
+5. Confirm the file exists and YAML `name:` equals the directory name. If not, stop.
 
 ### 2. Capture baseline
 
@@ -261,3 +262,4 @@ You are not the judge. Do not override FAIL because the diff looks fine.
 - You are scoring known-bad from memory instead of reading this skill's `references/known-bad.md`.
 - The hole is a wording preference (rephrase, shorter, synonym, restated protection) and you are about to edit anyway.
 - The user named two skills (or all skills) and you are about to pick one or run both.
+- The user named a path that is not an existing `SKILL.md` (or skill directory) and you are about to default to this skill.
