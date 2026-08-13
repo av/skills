@@ -210,10 +210,9 @@ Record the hash in `log.md`.
 
 **FAIL**
 
+Run the FAIL restore in `references/restore.md` next to this file (not `$skill_dir`): overlay `$d/baseline/`, then delete live paths with no baseline counterpart. Stop if `$d/baseline/SKILL.md` is missing. Then:
+
 ```bash
-cp "$d/baseline/SKILL.md" "$skill_dir/SKILL.md"
-rm -rf "$skill_dir/references"
-if [ -d "$d/baseline/references" ]; then cp -R "$d/baseline/references" "$skill_dir/references"; fi
 if [ -f "$repo/scripts/generate.ts" ]; then
   (cd "$repo" && deno run --allow-read --allow-write scripts/generate.ts)
 fi
@@ -235,6 +234,7 @@ You are not the judge. Do not override FAIL because the diff looks fine.
 | Judge returns no `gate.md` / no `Verdict:` | Step 6 still runs; missing or unparseable → FAIL restore; do not write `gate.md`; do not commit |
 | FAIL restore or PASS add hits the wrong tree | Step 6 reuses `$skill_dir` from step 2; stop if unset or not the live candidate |
 | FAIL restore leaves newly added `references/` | Always `rm -rf "$skill_dir/references"`; copy from `$d/baseline/references` only if that dir exists |
+| FAIL restore leaves newly added files outside `references/` | Run `references/restore.md` next to this file: overlay `$d/baseline/`, delete live paths with no baseline counterpart |
 | Catalog description becomes `>` | Single-line `description:` required; generate.ts after description edits |
 | Hand-edited README catalog | generate.ts only; never patch `### Skills` by hand |
 | Ask the user what to fix | Default target; lens produces the hole or a refusal |
@@ -257,6 +257,7 @@ You are not the judge. Do not override FAIL because the diff looks fine.
 - `$d/baseline/SKILL.md` is missing and you are about to edit.
 - `$skill_dir` is unset (or not the live candidate) and you are about to `git add` or restore.
 - Live `references/` is still present after a FAIL and `$d/baseline/references` was missing.
+- Live `assets/` or an extra root file is still present after a FAIL and `$d/baseline/` did not have it.
 - You are scoring known-bad from memory instead of reading this skill's `references/known-bad.md`.
 - The hole is a wording preference (rephrase, shorter, synonym, restated protection) and you are about to edit anyway.
 - The user named two skills (or all skills) and you are about to pick one or run both.
