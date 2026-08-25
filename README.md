@@ -66,6 +66,12 @@ Bulletproof agent operating protocol. 15 failure-prevention rules distilled from
 ```bash
 npx skills add av/skills --skill discipline
 ```
+#### **[factual-communication](./factual-communication)**
+Restate content as a flat list of atomic facts in the style of av/facts fact sheets. Use when the user says "just facts", "facts only", "as facts", "give me the facts", or replies with a bare "facts" / "facts?" to a previous message — then the scope is that message's content.
+
+```bash
+npx skills add av/skills --skill factual-communication
+```
 #### **[ideate](./ideate)**
 Timeboxed ideation on a topic using propose-and-critique subagent pairs. Use when the user wants to brainstorm, explore ideas, discover features, generate options, or think through possibilities for a specified duration. Triggers on requests like "brainstorm X for 30 minutes", "ideate on X", "spend an hour thinking about X", "what features should we build", "explore options for X".
 
