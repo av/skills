@@ -31,12 +31,30 @@ async function main() {
     
     // Parse frontmatter
     const nameMatch = content.match(/^name:\s*(.+)$/m);
-    const descMatch = content.match(/^description:\s*(.+)$/m);
+    // Supports both `description: text` and YAML folded/literal block scalars
+    // (`description: >` / `description: |` followed by an indented block).
+    const descMatch = content.match(/^description:[ \t]*([>|][-+]?)?[ \t]*(.*)$/m);
+    let description = "";
+    if (descMatch) {
+      if (descMatch[1]) {
+        const rest = content.slice(content.indexOf(descMatch[0]) + descMatch[0].length);
+        const lines: string[] = [];
+        for (const line of rest.split("\n").slice(1)) {
+          if (line.trim() === "") { lines.push(""); continue; }
+          if (!/^[ \t]/.test(line)) break;
+          lines.push(line.trim());
+        }
+        const joiner = descMatch[1].startsWith("|") ? "\n" : " ";
+        description = lines.join(joiner).trim();
+      } else {
+        description = descMatch[2].trim();
+      }
+    }
 
-    if (nameMatch && descMatch) {
+    if (nameMatch && description) {
       skills.push({
         name: nameMatch[1].trim(),
-        description: descMatch[1].trim(),
+        description,
         folder: dirname(entry.path),
       });
     }
