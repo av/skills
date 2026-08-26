@@ -85,7 +85,7 @@ Improve an existing agent SKILL.md through one gated cycle: select the target (d
 npx skills add av/skills --skill improve-skill
 ```
 #### **[make-video](./make-video)**
->
+Build a HyperFrames video composition from a brief/script autonomously. Uses separated builder and critic subagents — builders never review their own work. Quality decisions are grounded in project context (identity, audience, goals) and established visual/motion design principles. Measurable criteria (text size, contrast, overflow) are verified with tooling, not visual judgment. Use when the user says "make this video", "implement this brief", "build this composition", or provides a video script/brief to implement.
 
 ```bash
 npx skills add av/skills --skill make-video
@@ -127,7 +127,7 @@ Configure and operate the Claude Code harness for large codebases. Builds CLAUDE
 npx skills add av/skills --skill superclaude
 ```
 #### **[timeboxed-iterating](./timeboxed-iterating)**
-Use when the user specifies a task and a duration, and the work should be done iteratively by subagents over that time period
+Run a task iteratively over a user-specified duration by dispatching subagents. The orchestrator stays strictly linear and time-checked, but each iteration fans out MULTIPLE subagents in parallel over independent units (and those subagents may fan out further). Shared state — a compact progress digest and a growing environment cheatsheet — lives on disk and is passed to every subagent BY REFERENCE, killing the per-subagent rediscovery tax. Every subagent first reads an initialiser preamble that points it at that shared state and makes it write findings back, so the cheatsheet populates itself; role prompts are produced ONCE on the filesystem by a single scaffold command and dispatched by path, never re-typed per dispatch. Subagents persist their results to disk and return only a tiny status, so the orchestrator's context stays small and lasts. The orchestrator classifies the goal as FINITE or OPEN-ENDED: finite lists may finish early; open-ended goals use the full duration, never idle, never manufacture busywork. Use when the user gives a task and a duration and wants it ground out iteratively by subagents over that time.
 
 ```bash
 npx skills add av/skills --skill timeboxed-iterating

@@ -1,0 +1,22 @@
+# Timeboxed: {{GOAL}}
+
+- Classification: {{MODE}}
+- Mode: {{DURATION}} (deadline {{DEADLINE}})
+- Started: {{STARTED}}
+- Slug: {{SLUG}}   ·   Harness: {{HARNESS}}
+- Concurrency cap: <N subagents max in one batch — fill at setup>
+- Real success bar: <NUMERIC threshold OR TEXTUAL/QUALITATIVE rubric the goal is
+  actually judged by — Phase 1 pilots it; "none" if the goal has no statable bar>
+- Cheatsheet: cheatsheet.md   ·   Units: units/   ·   Run card: run-card.md
+
+This file is THE DIGEST: the compact single source of truth for volatile values
+(iteration count, per-unit status, the finite item list + done marks, commits).
+Subagents append one compact status line here; the orchestrator reads only the
+tail and owns the `done` transition (after the measurement gate). NOT a pile of
+ledgers — keep it compact.
+
+## Finite item list        <!-- FINITE runs only; the completion authority -->
+| Unit | Status (todo/doing/done) | Commit |
+|---|---|---|
+
+## Iteration log            <!-- compact: one status line per unit/batch, appended by subagents -->

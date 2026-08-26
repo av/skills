@@ -1,0 +1,28 @@
+# Run card — {{SLUG}}
+
+Static orientation for this run. Read this ONCE to get your bearings, then work
+from the live digest (progress.md). This card does NOT hold volatile values —
+those live in exactly one place, progress.md (single source of truth).
+
+## Identity
+- Goal: {{GOAL}}
+- Classification: {{MODE}}   (FINITE → finite list is the stop authority;
+  OPEN-ENDED → the clock is the stop authority)
+- Timebox: {{DURATION}}   ·   Deadline: {{DEADLINE}}
+- Started: {{STARTED}}
+- Slug: {{SLUG}}   ·   Harness: {{HARNESS}}
+
+## Workspace map
+- `progress.md`  — THE DIGEST: live single source of truth for volatile values;
+  orchestrator reads its tail, subagents append one-line statuses.
+- `cheatsheet.md`— self-populating environment knowledge; every subagent reads it
+  first and appends findings back.
+- `prompts/`     — role prompts materialised once by the scaffold; dispatched BY
+  PATH, never re-typed: initialiser.md, builder.md, sub-subagent.md, measurement.md.
+- `units/`       — one file per unit; parallel subagents never share a write target.
+
+## Resume
+Reconcile disk vs memory (trust disk): read progress.md, reconcile `git log`
+against recorded commits, reconcile the finite list, trust the cheatsheet, confirm
+prompts/ holds all four role files (re-run the scaffold if missing), then resume at
+the brake check.
