@@ -132,6 +132,12 @@ Run a task iteratively over a user-specified duration by dispatching subagents. 
 ```bash
 npx skills add av/skills --skill timeboxed-iterating
 ```
+#### **[timeframe-research](./timeframe-research)**
+Build a timeframe-bounded research dossier by decomposing a topic into year orchestrators and month-level research passes that each write one condensed paragraph plus sources directly into a target file. Use when the user asks for a dossier, timeline, chronology, release history, or month-by-month research bounded by specific years or months. Not for timeless explainers or single-document summaries with no temporal scope.
+
+```bash
+npx skills add av/skills --skill timeframe-research
+```
 #### **[tinygrad](./tinygrad)**
 Deep learning framework development with tinygrad - a minimal tensor library with autograd, JIT compilation, and multi-device support. Use when writing neural networks, training models, implementing tensor operations, working with UOps/PatternMatcher for graph transformations, or contributing to tinygrad internals. Triggers on tinygrad imports, Tensor operations, nn modules, optimizer usage, schedule/codegen work, or device backends.
 
