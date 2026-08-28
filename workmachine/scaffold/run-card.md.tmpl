@@ -1,0 +1,33 @@
+# Run card — {{SLUG}}
+
+Static orientation for this run. Read ONCE. Holds NO volatile values — those live
+in exactly one place, state.md.
+
+## Identity
+- Goal: {{GOAL}}
+- Timebox: {{DURATION}}   ·   Deadline: {{DEADLINE}}
+- Started: {{STARTED}}
+- Slug: {{SLUG}}   ·   Harness: {{HARNESS}}
+
+## The runtime
+```
+state, effects = init(machine); execute(effects)
+while state is active:
+  event = nextEvent(); state, effects = transition(machine, state, event); execute(effects)
+return state.output
+```
+
+## Workspace map
+- `machine.md`   — the machine (planner-authored, orchestrator-linted, executed mechanically)
+- `state.md`     — current state, row visits, event queue, output — the volatile truth
+- `events.md`    — append-only transition log — the audit trail
+- `progress.md`  — digest; subagents append one line per unit; collapsed into events
+- `cheatsheet.md`— self-populating environment knowledge
+- `prompts/`     — initialiser, planner, builder, sub-subagent, measurement — dispatched BY PATH
+- `units/`       — one file per unit; no shared write targets
+
+## Resume
+Trust disk: read state.md + events.md tail, reconcile `git log` (prefix
+`workmachine(<state>/<unit>)`) against progress.md, confirm prompts/ holds all
+five role files (re-run the scaffold with --force if not), re-execute any
+mid-flight effects, then continue at nextEvent().

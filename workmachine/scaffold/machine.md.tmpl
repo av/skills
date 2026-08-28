@@ -1,0 +1,31 @@
+# Machine: {{GOAL}}
+
+<!-- SKELETON. The planner subagent (prompts/planner.md) fills this in. The
+     orchestrator lints it, then executes it mechanically. Edit only via the
+     planner (ESCALATE protocol). -->
+
+## Alphabet
+built | pass | fail | blocked | deadline | user_stop
+
+## Event rules            <!-- first matching rule, top to bottom, yields the token -->
+- `date +%s` ≥ deadline → deadline            (preempts everything)
+- user says stop → user_stop                  (preempts everything)
+- any measurement returned FAIL → fail
+- every measurement under test returned PASS → pass
+- any unit returned blocked, or a claimed commit is not in git log → blocked
+- every dispatched unit returned done with its commit in git log → built
+
+## States
+### <INITIAL>        [initial]
+- Entry effects: <dispatch … | write … | check …>
+### …
+### SHIP             [final]
+- Output: <commit hash | path | verdict>
+### ESCALATE         [final]
+- Output: the missed (state, event) pair or the exhausted cycle
+
+## Transitions            <!-- (state, event) → next  [budget N → on_budget] -->
+| State | Event | Next | Budget | On budget |
+|---|---|---|---|---|
+| * | deadline | ESCALATE | — | — |
+| * | user_stop | ESCALATE | — | — |

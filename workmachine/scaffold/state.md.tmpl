@@ -1,0 +1,21 @@
+# State — {{SLUG}}
+
+Single source of truth for volatile values. One screen. The orchestrator writes
+it on every transition; nobody else does.
+
+- Goal: {{GOAL}}
+- Started: {{STARTED}} (epoch {{STARTED_EPOCH}})
+- Timebox: {{DURATION}}   ·   Deadline: {{DEADLINE}} (epoch {{DEADLINE_EPOCH}})
+- Concurrency cap: <N subagents max in one batch — fill at setup>
+- Success bar: <NUMERIC threshold OR TEXTUAL rubric, or `none` — copied into the
+  MEASURE state's dispatch delta>
+
+## Current
+- state: <not started — set after lint>
+- entered: <ts>
+
+## Row visits              <!-- budgeted rows only: "<state>/<event>: n/budget" -->
+
+## Event queue             <!-- head first; one token per line; alphabet only -->
+
+## Output                  <!-- written once, on entering a [final] state -->
