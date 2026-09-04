@@ -5,3 +5,5 @@ Orchestrate work as a cyclic directed graph of subagent-executed nodes with tran
 ```bash
 npx skills add av/skills --skill workgraph
 ```
+
+Part of [av/skills](https://github.com/av/skills) — a library of agent skills for Claude Code, Codex, OpenCode and other coding agents.

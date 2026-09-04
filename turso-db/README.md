@@ -5,3 +5,5 @@ Install, configure, and work with Turso DB — an in-process SQLite-compatible r
 ```bash
 npx skills add av/skills --skill turso-db
 ```
+
+Part of [av/skills](https://github.com/av/skills) — a library of agent skills for Claude Code, Codex, OpenCode and other coding agents.

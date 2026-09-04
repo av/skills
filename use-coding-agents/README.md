@@ -5,3 +5,5 @@ How to use the coding agents installed on this machine (claude, codex, droid, gr
 ```bash
 npx skills add av/skills --skill use-coding-agents
 ```
+
+Part of [av/skills](https://github.com/av/skills) — a library of agent skills for Claude Code, Codex, OpenCode and other coding agents.

@@ -5,3 +5,5 @@ Assemble a finished piece from human-written fragments via an orchestrated two-l
 ```bash
 npx skills add av/skills --skill mosaic-writing
 ```
+
+Part of [av/skills](https://github.com/av/skills) — a library of agent skills for Claude Code, Codex, OpenCode and other coding agents.

@@ -2,15 +2,34 @@ import { walk } from "https://deno.land/std@0.224.0/fs/walk.ts";
 import { dirname, join } from "https://deno.land/std@0.224.0/path/mod.ts";
 
 const README_PATH = "./README.md";
+const CATEGORIES_PATH = "./scripts/categories.json";
+const REPO = "av/skills";
+
+type Skill = { name: string; description: string; folder: string };
+
+/** First sentence of a description, capped, for the overview table. */
+function summarize(description: string, max = 140): string {
+  const flat = description.replace(/\s+/g, " ").trim();
+  const firstSentence = flat.match(/^.*?[.!?](?=\s|$)/)?.[0] ?? flat;
+  const summary = firstSentence.length > max
+    ? firstSentence.slice(0, max - 1).replace(/\s+\S*$/, "") + "…"
+    : firstSentence;
+  // Table cells cannot contain pipes or newlines.
+  return summary.replace(/\|/g, "\\|");
+}
+
+function installCmd(folder: string): string {
+  return `npx skills add ${REPO} --skill ${folder}`;
+}
 
 async function main() {
   console.log("Reading README.md...");
   const originalReadme = await Deno.readTextFile(README_PATH);
-  
+
   // Split at "### Skills" to preserve the header and everything before it
   const marker = "### Skills";
   const splitIndex = originalReadme.indexOf(marker);
-  
+
   if (splitIndex === -1) {
     console.error(`Could not find "${marker}" section in README.md`);
     Deno.exit(1);
@@ -18,17 +37,21 @@ async function main() {
 
   const baseContent = originalReadme.slice(0, splitIndex + marker.length);
 
+  const categories: Record<string, string[]> = JSON.parse(
+    await Deno.readTextFile(CATEGORIES_PATH),
+  );
+
   console.log("Scanning for SKILL.md files...");
-  const skills: { name: string; description: string; folder: string }[] = [];
+  const skills: Skill[] = [];
 
   // Walk excluding hidden folders and node_modules
-  for await (const entry of walk(".", { 
-    match: [/SKILL\.md$/], 
+  for await (const entry of walk(".", {
+    match: [/SKILL\.md$/],
     skip: [/\.git/, /node_modules/],
-    maxDepth: 3 
+    maxDepth: 3
   })) {
     const content = await Deno.readTextFile(entry.path);
-    
+
     // Parse frontmatter
     const nameMatch = content.match(/^name:\s*(.+)$/m);
     // Supports both `description: text` and YAML folded/literal block scalars
@@ -63,22 +86,41 @@ async function main() {
   // Sort alphabetically by name
   skills.sort((a, b) => a.name.localeCompare(b.name));
 
-  // Build the new Skills section
-  let newContent = baseContent + "\n\n";
-  
-  for (const skill of skills) {
-    // Ensure folder path format for markdown link
-    const folderPath = skill.folder.startsWith("./") ? skill.folder : `./${skill.folder}`;
-    const addSkillCmd = `npx skills add av/skills --skill ${skill.folder}`;
-    
-    newContent += `#### **[${skill.name}](${folderPath})**\n`;
-    newContent += `${skill.description}\n\n`;
-    newContent += '```bash\n'
-    newContent += `${addSkillCmd}\n`;
-    newContent += '```\n';
+  const byName = new Map(skills.map((s) => [s.name, s]));
+  const categorized = new Set(
+    Object.values(categories).flat().filter((n) => byName.has(n)),
+  );
+  const uncategorized = skills.filter((s) => !categorized.has(s.name));
 
-    // Generate README.md in the skill folder
-    const readmeContent = `# ${skill.name}\n\n${skill.description}\n\n\`\`\`bash\n${addSkillCmd}\n\`\`\`\n`;
+  // Build the new Skills section: one table per category
+  let newContent = baseContent + "\n\n";
+  newContent += `${skills.length} skills. Install any of them with ` +
+    `\`npx skills add ${REPO} --skill <name>\`.\n`;
+
+  const groups: [string, Skill[]][] = Object.entries(categories)
+    .filter(([category]) => !category.startsWith("_"))
+    .map(([category, names]) => [
+      category,
+      names.map((n) => byName.get(n)).filter((s): s is Skill => !!s),
+    ]);
+  if (uncategorized.length) groups.push(["Other", uncategorized]);
+
+  for (const [category, members] of groups) {
+    if (!members.length) continue;
+    newContent += `\n#### ${category}\n\n`;
+    newContent += `| Skill | What it does |\n| --- | --- |\n`;
+    for (const skill of members) {
+      const folderPath = skill.folder.startsWith("./") ? skill.folder : `./${skill.folder}`;
+      newContent += `| [${skill.name}](${folderPath}) | ${summarize(skill.description)} |\n`;
+    }
+  }
+
+  // Generate README.md in each skill folder — the full, model-facing description
+  for (const skill of skills) {
+    const readmeContent = `# ${skill.name}\n\n${skill.description}\n\n` +
+      `\`\`\`bash\n${installCmd(skill.folder)}\n\`\`\`\n\n` +
+      `Part of [${REPO}](https://github.com/${REPO}) — a library of agent skills ` +
+      `for Claude Code, Codex, OpenCode and other coding agents.\n`;
     await Deno.writeTextFile(join(skill.folder, "README.md"), readmeContent);
   }
 

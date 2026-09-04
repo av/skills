@@ -5,3 +5,5 @@ Create custom modules for [Harbor Boost](https://github.com/av/harbor/tree/main/
 ```bash
 npx skills add av/skills --skill boost-modules
 ```
+
+Part of [av/skills](https://github.com/av/skills) — a library of agent skills for Claude Code, Codex, OpenCode and other coding agents.

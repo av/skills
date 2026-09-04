@@ -5,3 +5,5 @@ Systematically explore and test any software project (CLI, API, Backend, Library
 ```bash
 npx skills add av/skills --skill bugbash
 ```
+
+Part of [av/skills](https://github.com/av/skills) — a library of agent skills for Claude Code, Codex, OpenCode and other coding agents.

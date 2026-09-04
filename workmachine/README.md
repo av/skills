@@ -5,3 +5,5 @@ Run work as an explicit event-driven state machine executed by subagents. The or
 ```bash
 npx skills add av/skills --skill workmachine
 ```
+
+Part of [av/skills](https://github.com/av/skills) — a library of agent skills for Claude Code, Codex, OpenCode and other coding agents.

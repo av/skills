@@ -5,3 +5,5 @@ Improve an existing agent SKILL.md through one gated cycle: select the target (d
 ```bash
 npx skills add av/skills --skill improve-skill
 ```
+
+Part of [av/skills](https://github.com/av/skills) — a library of agent skills for Claude Code, Codex, OpenCode and other coding agents.

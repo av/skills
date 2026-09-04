@@ -5,3 +5,5 @@ Orchestrate AI coding agents (Claude Code, Codex, OpenCode) in isolated sandboxe
 ```bash
 npx skills add av/skills --skill sandcastle
 ```
+
+Part of [av/skills](https://github.com/av/skills) — a library of agent skills for Claude Code, Codex, OpenCode and other coding agents.

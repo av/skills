@@ -5,3 +5,5 @@ Runs autonomous keep/discard experiments on a codebase to optimize a single metr
 ```bash
 npx skills add av/skills --skill autoresearch
 ```
+
+Part of [av/skills](https://github.com/av/skills) — a library of agent skills for Claude Code, Codex, OpenCode and other coding agents.

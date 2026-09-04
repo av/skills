@@ -5,3 +5,5 @@ Use when pulling or downloading a new llamacpp model. The active ROCm image (kyu
 ```bash
 npx skills add av/skills --skill pull-llamacpp-model
 ```
+
+Part of [av/skills](https://github.com/av/skills) — a library of agent skills for Claude Code, Codex, OpenCode and other coding agents.

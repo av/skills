@@ -5,3 +5,5 @@ Run a task iteratively over a user-specified duration by dispatching subagents. 
 ```bash
 npx skills add av/skills --skill timeboxed-iterating
 ```
+
+Part of [av/skills](https://github.com/av/skills) — a library of agent skills for Claude Code, Codex, OpenCode and other coding agents.

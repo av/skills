@@ -5,3 +5,5 @@ Restate content as a flat list of atomic facts in the style of av/facts fact she
 ```bash
 npx skills add av/skills --skill factual-communication
 ```
+
+Part of [av/skills](https://github.com/av/skills) — a library of agent skills for Claude Code, Codex, OpenCode and other coding agents.

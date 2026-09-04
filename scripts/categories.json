@@ -1,0 +1,41 @@
+{
+  "_comment": "Groups skills in the generated README. Skills missing here fall into 'Other'.",
+  "Orchestration & autonomous work": [
+    "workgraph",
+    "workmachine",
+    "timeboxed-iterating",
+    "use-coding-agents",
+    "sandcastle",
+    "autoresearch",
+    "ideate"
+  ],
+  "Code quality & testing": [
+    "anneal",
+    "bugbash",
+    "bughunt",
+    "agent-integration-testing"
+  ],
+  "Writing & research": [
+    "article-factory",
+    "mosaic-writing",
+    "catalog-deslop",
+    "factual-communication",
+    "timeframe-research",
+    "make-video"
+  ],
+  "Local LLMs": [
+    "run-llms",
+    "pull-llamacpp-model",
+    "boost-modules"
+  ],
+  "Agent craft": [
+    "discipline",
+    "improve-skill",
+    "superclaude"
+  ],
+  "Frameworks & tools": [
+    "preact-buildless-frontend",
+    "tinygrad",
+    "turso-db"
+  ]
+}

@@ -5,3 +5,5 @@ Build-less ESM frontends that run directly in the browser without bundlers. Use 
 ```bash
 npx skills add av/skills --skill preact-buildless-frontend
 ```
+
+Part of [av/skills](https://github.com/av/skills) — a library of agent skills for Claude Code, Codex, OpenCode and other coding agents.

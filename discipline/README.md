@@ -5,3 +5,5 @@ Bulletproof agent operating protocol. 15 failure-prevention rules distilled from
 ```bash
 npx skills add av/skills --skill discipline
 ```
+
+Part of [av/skills](https://github.com/av/skills) — a library of agent skills for Claude Code, Codex, OpenCode and other coding agents.

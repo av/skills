@@ -5,3 +5,5 @@ Build a HyperFrames video composition from a brief/script autonomously. Uses sep
 ```bash
 npx skills add av/skills --skill make-video
 ```
+
+Part of [av/skills](https://github.com/av/skills) — a library of agent skills for Claude Code, Codex, OpenCode and other coding agents.

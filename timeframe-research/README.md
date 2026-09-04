@@ -5,3 +5,5 @@ Build a timeframe-bounded research dossier by decomposing a topic into year orch
 ```bash
 npx skills add av/skills --skill timeframe-research
 ```
+
+Part of [av/skills](https://github.com/av/skills) — a library of agent skills for Claude Code, Codex, OpenCode and other coding agents.

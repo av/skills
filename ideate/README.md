@@ -5,3 +5,5 @@ Timeboxed ideation on a topic using propose-and-critique subagent pairs. Use whe
 ```bash
 npx skills add av/skills --skill ideate
 ```
+
+Part of [av/skills](https://github.com/av/skills) — a library of agent skills for Claude Code, Codex, OpenCode and other coding agents.
