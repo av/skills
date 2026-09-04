@@ -150,6 +150,12 @@ Install, configure, and work with Turso DB — an in-process SQLite-compatible r
 ```bash
 npx skills add av/skills --skill turso-db
 ```
+#### **[use-coding-agents](./use-coding-agents)**
+How to use the coding agents installed on this machine (claude, codex, droid, grok, hermes, opencode, copilot, pi) as plain sub-agents in orchestrated workflows: one headless invocation, one prompt in, one result out. Deliberately ignores each CLI's own orchestration features (droid --mission, codex multi_agent, hermes delegation/moa/kanban, grok --agents, opencode personas). The orchestrator is whatever session is running the skill; the CLIs are interchangeable workers. Use when the user asks "which agent should run this", "fan out workers", "run X headless", or when a lifeos skill (overnight, timeboxed-iterating, workgraph, gauntlet, bughunt, dark-factory) needs to launch an agent CLI.
+
+```bash
+npx skills add av/skills --skill use-coding-agents
+```
 #### **[workgraph](./workgraph)**
 Orchestrate work as a cyclic directed graph of subagent-executed nodes with transition criteria on edges, budgeted cycles, and per-node gates (runtime verification, metric, or artifact). Use when the user says "workgraph", "run this as a graph", "graph this work", or when a goal has parallel branches, feedback loops, or mixed gate types that a linear loop cannot express. For chain-shaped work use timeboxed-iterating, autoresearch, or dark-factory instead.
 
