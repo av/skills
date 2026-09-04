@@ -4,6 +4,17 @@ import { dirname, join } from "https://deno.land/std@0.224.0/path/mod.ts";
 const README_PATH = "./README.md";
 const CATEGORIES_PATH = "./scripts/categories.json";
 const REPO = "av/skills";
+const LOGO_DIR = "assets/logos";
+
+/** Skills without a hand-authored logo simply render without one. */
+async function hasLogo(name: string): Promise<boolean> {
+  try {
+    await Deno.stat(`./${LOGO_DIR}/${name}.svg`);
+    return true;
+  } catch {
+    return false;
+  }
+}
 
 type Skill = { name: string; description: string; folder: string };
 
@@ -108,16 +119,22 @@ async function main() {
   for (const [category, members] of groups) {
     if (!members.length) continue;
     newContent += `\n#### ${category}\n\n`;
-    newContent += `| Skill | What it does |\n| --- | --- |\n`;
+    newContent += `| | Skill | What it does |\n| :-: | --- | --- |\n`;
     for (const skill of members) {
       const folderPath = skill.folder.startsWith("./") ? skill.folder : `./${skill.folder}`;
-      newContent += `| [${skill.name}](${folderPath}) | ${summarize(skill.description)} |\n`;
+      const logo = await hasLogo(skill.name)
+        ? `<img src="./${LOGO_DIR}/${skill.name}.svg" width="32" alt="">`
+        : "";
+      newContent += `| ${logo} | [${skill.name}](${folderPath}) | ${summarize(skill.description)} |\n`;
     }
   }
 
   // Generate README.md in each skill folder — the full, model-facing description
   for (const skill of skills) {
-    const readmeContent = `# ${skill.name}\n\n${skill.description}\n\n` +
+    const logoHeader = await hasLogo(skill.name)
+      ? `<img src="../${LOGO_DIR}/${skill.name}.svg" width="72" align="left" hspace="12" alt="">\n\n`
+      : "";
+    const readmeContent = `${logoHeader}# ${skill.name}\n\n${skill.description}\n\n` +
       `\`\`\`bash\n${installCmd(skill.folder)}\n\`\`\`\n\n` +
       `Part of [${REPO}](https://github.com/${REPO}) — a library of agent skills ` +
       `for Claude Code, Codex, OpenCode and other coding agents.\n`;
