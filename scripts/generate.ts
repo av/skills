@@ -19,14 +19,13 @@ async function hasLogo(name: string): Promise<boolean> {
 type Skill = { name: string; description: string; folder: string };
 
 /** First sentence of a description, capped, for the overview table. */
-function summarize(description: string, max = 140): string {
+function summarize(description: string, max = 190): string {
   const flat = description.replace(/\s+/g, " ").trim();
   const firstSentence = flat.match(/^.*?[.!?](?=\s|$)/)?.[0] ?? flat;
   const summary = firstSentence.length > max
     ? firstSentence.slice(0, max - 1).replace(/\s+\S*$/, "") + "…"
     : firstSentence;
-  // Table cells cannot contain pipes or newlines.
-  return summary.replace(/\|/g, "\\|");
+  return summary;
 }
 
 function installCmd(folder: string): string {
@@ -119,13 +118,15 @@ async function main() {
   for (const [category, members] of groups) {
     if (!members.length) continue;
     newContent += `\n#### ${category}\n\n`;
-    newContent += `| | Skill | What it does |\n| :-: | --- | --- |\n`;
     for (const skill of members) {
       const folderPath = skill.folder.startsWith("./") ? skill.folder : `./${skill.folder}`;
+      // The logo stands in for a list marker, so these are blank-line separated
+      // paragraphs rather than a bulleted list.
       const logo = await hasLogo(skill.name)
-        ? `<img src="./${LOGO_DIR}/${skill.name}.svg" width="32" alt="">`
+        ? `<img src="./${LOGO_DIR}/${skill.name}.svg" width="26" align="top" alt="">&nbsp;`
         : "";
-      newContent += `| ${logo} | [${skill.name}](${folderPath}) | ${summarize(skill.description)} |\n`;
+      newContent += `${logo}**[${skill.name}](${folderPath})** — ` +
+        `${summarize(skill.description)}\n\n`;
     }
   }
 
