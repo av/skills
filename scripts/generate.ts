@@ -37,7 +37,7 @@ async function main() {
   const originalReadme = await Deno.readTextFile(README_PATH);
 
   // Split at "### Skills" to preserve the header and everything before it
-  const marker = "### Skills";
+  const marker = "## Skills";
   const splitIndex = originalReadme.indexOf(marker);
 
   if (splitIndex === -1) {
@@ -105,7 +105,7 @@ async function main() {
   // Build the new Skills section: one table per category
   let newContent = baseContent + "\n\n";
   newContent += `${skills.length} skills. Install any of them with ` +
-    `\`npx skills add ${REPO} --skill <name>\`.\n`;
+    `\`npx skills add ${REPO} --skill <name>\`.\n\n`;
 
   const groups: [string, Skill[]][] = Object.entries(categories)
     .filter(([category]) => !category.startsWith("_"))
@@ -117,7 +117,7 @@ async function main() {
 
   for (const [category, members] of groups) {
     if (!members.length) continue;
-    newContent += `\n#### ${category}\n\n`;
+    newContent += `### ${category}\n\n`;
     for (const skill of members) {
       const folderPath = skill.folder.startsWith("./") ? skill.folder : `./${skill.folder}`;
       // The logo stands in for a list marker, so these are blank-line separated
@@ -128,6 +128,7 @@ async function main() {
       newContent += `${logo}**[${skill.name}](${folderPath})** — ` +
         `${summarize(skill.description)}\n\n`;
     }
+    newContent += "\n";
   }
 
   // Generate README.md in each skill folder — the full, model-facing description
