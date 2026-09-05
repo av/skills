@@ -128,7 +128,7 @@ async function main() {
       newContent += `${logo}**[${skill.name}](${folderPath})** — ` +
         `${summarize(skill.description)}\n\n`;
     }
-    newContent += "\n";
+    newContent += "\n\n";
   }
 
   // Generate README.md in each skill folder — the full, model-facing description
@@ -143,8 +143,8 @@ async function main() {
     await Deno.writeTextFile(join(skill.folder, "README.md"), readmeContent);
   }
 
-  // Write changes back to README
-  await Deno.writeTextFile(README_PATH, newContent);
+  // Write changes back to README (no trailing blank lines at EOF)
+  await Deno.writeTextFile(README_PATH, newContent.trimEnd() + "\n");
   console.log(`Successfully updated README.md with ${skills.length} skills.`);
 }
 
