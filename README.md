@@ -38,7 +38,7 @@ Skills are plain folders containing a `SKILL.md`, so you can also just copy one 
 
 <img src="./assets/logos/ideate.svg" width="26" align="top" alt="">&nbsp;**[ideate](./ideate)** — Timeboxed ideation on a topic using propose-and-critique subagent pairs.
 
-
+<br>
 
 ### Code quality & testing
 
@@ -50,7 +50,7 @@ Skills are plain folders containing a `SKILL.md`, so you can also just copy one 
 
 <img src="./assets/logos/agent-integration-testing.svg" width="26" align="top" alt="">&nbsp;**[agent-integration-testing](./agent-integration-testing)** — Use when the user requests integration testing, feature validation, or test plan execution
 
-
+<br>
 
 ### Writing & research
 
@@ -66,7 +66,7 @@ Skills are plain folders containing a `SKILL.md`, so you can also just copy one 
 
 <img src="./assets/logos/make-video.svg" width="26" align="top" alt="">&nbsp;**[make-video](./make-video)** — Build a HyperFrames video composition from a brief/script autonomously.
 
-
+<br>
 
 ### Local LLMs
 
@@ -76,7 +76,7 @@ Skills are plain folders containing a `SKILL.md`, so you can also just copy one 
 
 <img src="./assets/logos/boost-modules.svg" width="26" align="top" alt="">&nbsp;**[boost-modules](./boost-modules)** — Create custom modules for [Harbor Boost](https://github.com/av/harbor/tree/main/boost), an optimizing LLM proxy.
 
-
+<br>
 
 ### Agent craft
 
@@ -86,7 +86,7 @@ Skills are plain folders containing a `SKILL.md`, so you can also just copy one 
 
 <img src="./assets/logos/superclaude.svg" width="26" align="top" alt="">&nbsp;**[superclaude](./superclaude)** — Configure and operate the Claude Code harness for large codebases.
 
-
+<br>
 
 ### Frameworks & tools
 

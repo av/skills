@@ -115,8 +115,8 @@ async function main() {
     ]);
   if (uncategorized.length) groups.push(["Other", uncategorized]);
 
-  for (const [category, members] of groups) {
-    if (!members.length) continue;
+  const rendered = groups.filter(([, members]) => members.length);
+  for (const [i, [category, members]] of rendered.entries()) {
     newContent += `### ${category}\n\n`;
     for (const skill of members) {
       const folderPath = skill.folder.startsWith("./") ? skill.folder : `./${skill.folder}`;
@@ -128,7 +128,9 @@ async function main() {
       newContent += `${logo}**[${skill.name}](${folderPath})** — ` +
         `${summarize(skill.description)}\n\n`;
     }
-    newContent += "\n\n";
+    // Blank lines collapse when rendered, so space sections with an explicit
+    // <br>. The last section needs none — nothing follows it.
+    if (i < rendered.length - 1) newContent += "<br>\n\n";
   }
 
   // Generate README.md in each skill folder — the full, model-facing description
