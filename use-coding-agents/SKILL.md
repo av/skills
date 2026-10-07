@@ -110,18 +110,54 @@ Read CLAUDE.md / AGENTS.md / README.md first if present.
 Commit with clear messages when done. Do not ask questions.
 Do not start or reinstall opencode.service; the OpenCode daemon is retired.
 Write your result to <unit_file> and print ONLY one line: DONE|BLOCKED|FAILED <reason>.
+Before DONE, compare your diff and the observed result with the unit's Acceptance. If only a
+proxy passed (tests, a build, a plan) or a gate is still open, print BLOCKED and name what is unmet.
+After a tool error, do the next step it names before calling that tool again (table in
+~/.agents/skills/use-coding-agents/SKILL.md, "Error → next step"). Never resend the same failing call.
 P
+cat > "$d/unit-1.md" <<'U'
+Task: <what to do>
+Acceptance:
+- Deliver: <artifact or path>
+- Scope: may change <paths>; must not touch <paths>
+- Proof: <command or observation in the target environment>, not a proxy
+- Gates: <checks and approvals to wait for; stop at a withheld one>
+- Report: <format>
+U
 cd <code_path>
-claude -p "$(cat $d/preamble.md $d/unit-1.md)" --dangerously-skip-permissions        > $d/1.log 2>&1 &
-codex exec --dangerously-bypass-approvals-and-sandbox < <(cat $d/preamble.md $d/unit-2.md) > $d/2.log 2>&1 &
-droid exec --skip-permissions-unsafe -f <(cat $d/preamble.md $d/unit-3.md)          > $d/3.log 2>&1 &
-grok -p "$(cat $d/preamble.md $d/unit-4.md)" --always-approve -w unit-4             > $d/4.log 2>&1 &
-opencode run "$(cat $d/preamble.md $d/unit-5.md)" --auto                          > $d/5.log 2>&1 &
+mkdir -p $d/cache-{1..5}   # one writable cache per worker; a shared /tmp cache breaks gh
+XDG_CACHE_HOME=$d/cache-1 claude -p "$(cat $d/preamble.md $d/unit-1.md)" --dangerously-skip-permissions > $d/1.log 2>&1 &
+XDG_CACHE_HOME=$d/cache-2 codex exec --dangerously-bypass-approvals-and-sandbox < <(cat $d/preamble.md $d/unit-2.md) > $d/2.log 2>&1 &
+XDG_CACHE_HOME=$d/cache-3 droid exec --skip-permissions-unsafe -f <(cat $d/preamble.md $d/unit-3.md) > $d/3.log 2>&1 &
+XDG_CACHE_HOME=$d/cache-4 grok -p "$(cat $d/preamble.md $d/unit-4.md)" --always-approve -w unit-4 > $d/4.log 2>&1 &
+XDG_CACHE_HOME=$d/cache-5 opencode run "$(cat $d/preamble.md $d/unit-5.md)" --auto > $d/5.log 2>&1 &
 wait; tail -n1 $d/*.log
 ```
 
 Prompts live on disk and are dispatched by path. The orchestrator authors nothing itself
 (same discipline as `timeboxed-iterating`).
+
+### Acceptance contract
+
+Every unit prompt carries the `Acceptance:` block above, filled in. A unit without it is not
+ready to dispatch. Read a DONE against the same block, not against the worker's summary.
+When the user corrects a result, rewrite the unit's `Acceptance:` from the correction before
+resuming or re-dispatching; the worker's first line restates what changed and what will prove it.
+
+### Error → next step
+
+Repeat calls after an error that already said why were the main avoidable cost in long runs.
+
+| Error | Next step, before calling the tool again |
+|---|---|
+| Claude `Edit`: file has not been read | `Read` that exact path (a shell `cat` does not count), then `Edit` |
+| `Edit`: old string not found | re-read that region, copy the exact text |
+| Claude Bash rejects `sleep N; <status>` | `Monitor` with an `until` loop, or `run_in_background` |
+| droid Bash times out at 60 s | keep every wait under 60 s; poll in steps |
+| `command not found` (e.g. `dstask`) | `command -v <tool>` once; absent → switch tools (Backlog.md for tasks) |
+| `gh`: cache permission denied | `export XDG_CACHE_HOME=$(mktemp -d /tmp/cache-XXXX)`, retry once |
+| guessed path does not exist | one `rg --files \| rg <name>`, then use what it finds |
+| skill path does not exist | skills live at `~/.agents/skills/<name>/SKILL.md`; `ls ~/.agents/skills` once |
 
 ## Rules
 
