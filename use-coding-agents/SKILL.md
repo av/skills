@@ -2,7 +2,7 @@
 name: use-coding-agents
 description: >
   How to use the coding agents installed on this machine (claude, codex, droid,
-  grok, hermes, opencode, copilot, pi) as plain sub-agents in orchestrated
+  grok, vktr, hermes, opencode, copilot, pi) as plain sub-agents in orchestrated
   workflows: one headless invocation, one prompt in, one result out. Deliberately
   ignores each CLI's own orchestration features (droid --mission, codex
   multi_agent, hermes delegation/moa/kanban, grok --agents, opencode personas).
@@ -10,7 +10,8 @@ description: >
   interchangeable workers. Use when the user asks "which agent should run this",
   "fan out workers", "run X headless", or when a lifeos skill (overnight,
   timeboxed-iterating, workgraph, gauntlet, bughunt, dark-factory) needs to launch
-  an agent CLI.
+  an agent CLI, or when a worker needs company context it should ask Viktor for
+  (vktr).
 ---
 
 # Use Coding Agents — Installed CLIs as Plain Sub-agents
@@ -39,6 +40,7 @@ prints a result, exits. Nothing more.
 | codex    | `codex exec "<prompt>"` (or prompt on stdin)              | `--dangerously-bypass-approvals-and-sandbox`   | PASS |
 | droid    | `droid exec "<prompt>"`                                   | `--skip-permissions-unsafe` (not with `--auto`) | PASS |
 | grok     | `grok -p "<prompt>"`                                      | `--always-approve`                             | PASS |
+| vktr     | `vktr -p "<prompt>"` (Viktor as the model, see below)    | `--always-approve` (pair with `--deny`)        | installed 2026-10-08; live run needs the owner's key |
 | grokc    | `COLORTERM=truecolor grokc -p "<prompt>"`                 | built in (podman, `$PWD` only)                 | PASS |
 | opencode | `opencode run "<prompt>"`                                | `--auto` (without it a permission prompt hangs a headless run) | PASS (default model now `openrouter/~anthropic/claude-sonnet-latest`, github-copilot disabled in `control/config/opencode.jsonc`) |
 | pi       | `pi -p "<prompt>"`                                        | none needed                                    | PASS, local model, slow |
@@ -56,6 +58,7 @@ with `--skip-permissions-unsafe`; hermes restores the previous session's cwd unl
 | codex    | `-o <file>` writes the last message; `--json` for JSONL events |
 | droid    | `-o json`                                            |
 | grok     | `--output-format json`, or `--json-schema '<schema>'` |
+| vktr     | `--json` (`text`, `sessionId`), or `--json-schema '<schema>'` |
 | opencode | `--format json`                                      |
 | pi       | `--mode json`                                        |
 
@@ -70,6 +73,7 @@ Use when a unit is small. Same worker, fewer tokens:
 - codex: `-c model_reasoning_effort=low` (`minimal` is rejected)
 - droid: `-r low -m claude-haiku-4-5-20251001`
 - grok: `--max-turns N --no-subagents --disable-web-search`
+- vktr: `--max-turns N` (lean toolset and one request per prompt are already the default)
 - opencode: `--variant minimal`
 - pi: `--thinking off`
 
@@ -87,6 +91,29 @@ Validated 2026-09-04. Pass the id with the agent's model flag (`--model` / `-m`)
 | pi       | `pi --list-models [search]` (table with context/max-out/thinking columns) | `harbor-llamacpp` Qwen3-Coder-Next Q8 (`~/.pi/agent/settings.json`) | `--model` |
 | hermes   | `hermes model` (interactive picker; `--refresh` re-fetches each provider's `/v1/models`); `hermes config get model` prints the default | `deepseek/deepseek-v4-flash-0731` via `nous` | `-m` |
 | copilot  | no list command; `/model` in the TUI                    | account default               | `--model` |
+
+### Viktor (vktr): the worker that knows the company
+
+[`vktr`](https://github.com/viktor-com/vktr) is a Grok Build fork whose only model is `viktor`,
+the company's AI employee. It runs as the key owner's own Viktor, so it can see what that person's
+Viktor sees: Slack, Linear, GitHub, Notion, analytics, its skills. Same worker contract as `grok`.
+
+- **Ask Viktor for context the repo can't give.** Who owns X, what a Slack thread decided, a Linear
+  issue, a customer's state, logs or metrics. Ask instead of guessing:
+  `vktr -p "<question>" --json` → read `.text`. Without grants it is read-only.
+- **As a worker:** `vktr -p "<prompt>" -w <name> --always-approve --deny 'Bash(git push*)'`.
+  Long prompts: `--prompt-file f`. Resume: `-r <sessionId>` or `-c`. Headless skips an untrusted
+  repo's `AGENTS.md` silently; look at it, then pass `--trust` once.
+- **Another CLI on Viktor:** `vktr launch --viktor claude -p "..."` (also codex, opencode, pi).
+- **Install:** `curl -fsSL https://raw.githubusercontent.com/viktor-com/vktr/main/install.sh | sh`
+  (no root; `~/.vktr/bin`, linked from `~/.local/bin`).
+- **Key:** a personal Viktor API key with scope `chat:completions`. Only its owner can create it,
+  at app.viktor.com/settings/api-keys. Save it with `vktr login`, which prompts with hidden input,
+  or set `VIKTOR_API_KEY`. Never put a key on a command line, in a repo or in a prompt.
+  `vktr doctor` shows where the key comes from and checks it live.
+- No key → the worker prints `BLOCKED no Viktor key: run vktr login`. Never search for one.
+- Every call spends Viktor workspace credits. Use it for context and Viktor-shaped tasks, not
+  as a bulk code editor.
 
 ### Isolation
 
@@ -169,6 +196,9 @@ Repeat calls after an error that already said why were the main avoidable cost i
 - **Bypass flags only** in a worktree, in `grokc`, or in a repo you can `git reset`.
 - **Backlog.md stays human.** Workers do not touch `backlog/tasks/`.
 - **Smoke tests are one word.** Validate a recipe with "Reply with the single word OK." only.
+- **Shared machines: your home only.** On a multi-user box or fleet, act only inside your own
+  user's home. Never read or change another user's sessions, worktrees, agent configs or keys.
+  Fleet-wide installs are an admin task, not a worker task.
 - **Do not invent flags.** Not in this file → run `--help` and paste the real one.
 
 ## Related skills
