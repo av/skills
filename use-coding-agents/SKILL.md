@@ -40,7 +40,7 @@ prints a result, exits. Nothing more.
 | codex    | `codex exec "<prompt>"` (or prompt on stdin)              | `--dangerously-bypass-approvals-and-sandbox`   | PASS |
 | droid    | `droid exec "<prompt>"`                                   | `--skip-permissions-unsafe` (not with `--auto`) | PASS |
 | grok     | `grok -p "<prompt>"`                                      | `--always-approve`                             | PASS |
-| vktr     | `vktr -p "<prompt>"` (Viktor as the model, see below)    | `--always-approve` (pair with `--deny`)        | installed 2026-10-08; live run needs the owner's key |
+| vktr     | `vktr -p "<prompt>"` (Viktor as the model, see below)    | `--always-approve` (pair with `--deny`)        | verified 2026-10-09: keyed on all 10 fleet boxes, live OK |
 | grokc    | `COLORTERM=truecolor grokc -p "<prompt>"`                 | built in (podman, `$PWD` only)                 | PASS |
 | opencode | `opencode run "<prompt>"`                                | `--auto` (without it a permission prompt hangs a headless run) | PASS (default model now `openrouter/~anthropic/claude-sonnet-latest`, github-copilot disabled in `control/config/opencode.jsonc`) |
 | pi       | `pi -p "<prompt>"`                                        | none needed                                    | PASS, local model, slow |
