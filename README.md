@@ -30,13 +30,13 @@ Skills are plain folders containing a `SKILL.md`, so you can also just copy one 
 
 <img src="./assets/logos/timeboxed-iterating.svg" width="26" align="top" alt="">&nbsp;**[timeboxed-iterating](./timeboxed-iterating)** — Run a task iteratively over a user-specified duration by dispatching subagents.
 
-<img src="./assets/logos/use-coding-agents.svg" width="26" align="top" alt="">&nbsp;**[use-coding-agents](./use-coding-agents)** — How to use the coding agents installed on this machine (claude, codex, droid, grok, hermes, opencode, copilot, pi) as plain sub-agents in orchestrated workflows: one headless invocation,…
+<img src="./assets/logos/use-coding-agents.svg" width="26" align="top" alt="">&nbsp;**[use-coding-agents](./use-coding-agents)** — How to use the coding agents installed on this machine (claude, codex, droid, grok, vktr, hermes, opencode, copilot, pi) as plain sub-agents in orchestrated workflows: one headless…
 
 <img src="./assets/logos/sandcastle.svg" width="26" align="top" alt="">&nbsp;**[sandcastle](./sandcastle)** — Orchestrate AI coding agents (Claude Code, Codex, OpenCode) in isolated sandboxes using the @ai-hero/sandcastle SDK.
 
 <img src="./assets/logos/autoresearch.svg" width="26" align="top" alt="">&nbsp;**[autoresearch](./autoresearch)** — Runs autonomous keep/discard experiments on a codebase to optimize a single metric for a fixed duration, in the style of karpathy/autoresearch.
 
-<img src="./assets/logos/ideate.svg" width="26" align="top" alt="">&nbsp;**[ideate](./ideate)** — Timeboxed ideation on a topic using propose-and-critique subagent pairs.
+<img src="./assets/logos/ideate.svg" width="26" align="top" alt="">&nbsp;**[ideate](./ideate)** — Timeboxed ideation on a topic where lens-driven proposers generate structurally different ideas, blind critics cull them, and pairwise judges rank the survivors on a tournament ladder…
 
 <br>
 
