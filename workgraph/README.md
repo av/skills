@@ -9,26 +9,32 @@ Orchestrate work as a cyclic directed graph of subagent-executed nodes with tran
 Every render uses the skill's fixed palette:
 `gray PENDING · blue READY · orange RUNNING · green VERIFIED · red FAILED · purple ESCALATED`
 
-### Two-node do/verify
+### Database migration with dual-write and a rollback gate
 
-The smallest graph — a small goal ("add dark mode to a todo app") is one
-mutating node and its verify node.
+`dual_write` and `backfill` run in parallel and rejoin at the `parity`
+gate. Parity found row drift, so the FAIL edge sent `backfill` back for a
+second pass (`×2`). A failed `soak` routes to `rollback`, and from there
+back to `plan`.
 
-![Two-node do/verify graph: do (ready, blue) feeds verify (pending, gray)](./assets/graph-do-verify.png)
+![Database migration graph: plan, schema and dual_write verified; backfill ×2 running after parity failed; read_switch, soak, rollback, drop_old and cleanup pending](./assets/graph-db-migration.png)
 
-### Branch-and-merge with a feedback loop
+### Multi-source research report with fact-check and revision
 
-Two branches merge at a gate, and a failed check feeds back into the patch
-node (`patch ×2` is the visit counter) — e.g. for "fix a flaky test".
+`scope` fans out to four source nodes that rejoin at `synth`. `forums`
+escalated (the source was unreachable) and the report went ahead without
+it. `fact_check` rejected the first draft, `revise` fixed it, and the
+second check is running now. A `critic` FAIL goes back to `synth`.
 
-![Branch-and-merge graph with a feedback loop: repro and bisect verified, patch running, check and merge pending, with a FAIL edge from check back to patch](./assets/graph-branch-merge.png)
+![Research report graph: scope, papers, filings, news, synth and revise verified; forums escalated; fact_check ×2 running; critic and publish pending](./assets/graph-research-report.png)
 
-### Mid-run state
+### Release with a test matrix, canary and rollback
 
-A snapshot during the loop: `api` verified, `ui` failed after the `test`
-gate rejected it, `test ×3` running, `ship` pending.
+`build` fans out to a four-way test matrix behind a single `gate`. The
+first canary tripped on a 5xx spike, so `rollback` and `hotfix` ran and
+the graph looped back into `build`. Second visits (`×2`) are in progress
+on macOS and e2e, while `notes` waits at `rollout`.
 
-![Mid-run graph state: api verified (green), ui failed (red), test running (orange), ship pending (gray)](./assets/graph-mid-run.png)
+![Release graph: freeze, build ×2, linux ×2, windows ×2, rollback, hotfix and notes verified; macos ×2 and e2e ×2 running; canary failed; gate and rollout pending](./assets/graph-release-canary.png)
 
 ```bash
 npx skills add av/skills --skill workgraph
