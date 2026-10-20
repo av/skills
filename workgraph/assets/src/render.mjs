@@ -94,7 +94,8 @@ function finish(back) {
   for (const { tail, head, side, label } of back) {
     const T = nodes.get(tail), H = nodes.get(head);
     const top = side === 'top';
-    const tx = T.x + T.width / 2, hx = H.x + H.width / 2;
+    // Land right of centre, clear of joins that arrive from the left.
+    const tx = T.x + T.width / 2, hx = H.x + H.width * 0.65;
     const lo = Math.min(tx, hx), hi = Math.max(tx, hx);
     const span = [...nodes.values(), ...fwd].filter((b) => b.x < hi && b.x + b.width > lo);
     const cy = top ? Math.min(...span.map((b) => b.y)) - GAP : Math.max(...span.map((b) => b.y + b.height)) + GAP;
