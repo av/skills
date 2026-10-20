@@ -1,8 +1,8 @@
 // Renders the workgraph README sample graphs and colour key.
-//   src/<name>.json -> ../graph-<name>-dark.png, ../graph-<name>-light.png (2x, rounded card)
-//   (built in)      -> ../graph-legend-dark.png, ../graph-legend-light.png
-// Nodes are hand-placed on a column/row grid in the JSON. Forward edges run
-// from a node's right port to the next node's left port; edges with
+//   src/<name>.json -> ../graph-<name>-light.png, ../graph-<name>-dark.png (2x, transparent)
+//   (built in)      -> ../graph-legend-light.png, ../graph-legend-dark.png
+// Nodes are hand-placed on a column/row grid in the JSON. Forward edges are
+// orthogonal: they turn on a bus in the middle of each column gap. Edges with
 // "loop": "above" | "below" are drawn as rounded arcs outside every node they span.
 //
 // Run from any directory that has the packages installed:
@@ -20,48 +20,48 @@ const { chromium } = require('playwright-core');
 const SRC = path.dirname(fileURLToPath(import.meta.url));
 const OUT = path.dirname(SRC);
 const README_WIDTH = 860; // github.com README column is ~860px wide
-const FONT = path.join(process.cwd(), 'node_modules/geist/dist/fonts/geist-mono/GeistMono-Variable.woff2');
+const FONTS = path.join(process.cwd(), 'node_modules/geist/dist/fonts');
 
-// Neutral surfaces matched to GitHub's light and dark themes. Status follows
-// SKILL.md's muted palette: two accents (red FAILED, amber ESCALATED); the
-// other states differ by marker and line weight only. Edge colours are opaque
-// so shared segments never darken where they overlap.
+// Neutral ink per GitHub theme; `page` is GitHub's background, used behind
+// inline labels. Edge colours are opaque so shared segments never darken.
 const themes = {
-  dark: {
-    canvas: '#10151c', card: '#2a323c', node: '#161c24', nodeLine: '#2b333d', done: '#222a33',
-    text: '#e6edf3', muted: '#9aa3ad', edge: '#5f6873', loop: '#5a636e', fail: '#f85149', attn: '#d29922', shadow: 0,
-  },
   light: {
-    canvas: '#f6f8fa', card: '#dfe4e9', node: '#ffffff', nodeLine: '#d6dce2', done: '#e8ecf0',
-    text: '#1f2328', muted: '#656d76', edge: '#9aa3ad', loop: '#a8b1bb', fail: '#cf222e', attn: '#9a6700', shadow: 0.05,
+    page: '#ffffff', node: '#ffffff', nodeLine: '#d1d9e0', text: '#1f2328', muted: '#59636e',
+    edge: '#8c959f', loop: '#afb8c1', fail: '#cf222e', attn: '#9a6700', shadow: 0.05,
+  },
+  dark: {
+    page: '#0d1117', node: '#151b23', nodeLine: '#3d444d', text: '#f0f6fc', muted: '#b1b8c0',
+    edge: '#656c76', loop: '#545b64', fail: '#f85149', attn: '#d29922', shadow: 0,
   },
 };
+
+// SKILL.md's muted palette: neutral states differ by marker and weight; only
+// FAILED (red) and ESCALATED (amber) carry colour, as marker and border.
 const STATES = ['pending', 'ready', 'running', 'verified', 'failed', 'escalated'];
-// Per state: node fill, border, border width, dash, label colour, marker.
 const look = (t) => ({
-  pending: { fill: t.node, stroke: t.muted, width: 1, dash: '3 3', text: t.muted, marker: ['ring', t.muted] },
-  ready: { fill: t.node, stroke: t.muted, width: 1, text: t.text, marker: ['ring', t.text] },
-  running: { fill: t.node, stroke: t.text, width: 1, text: t.text, marker: ['live', t.text] },
-  verified: { fill: t.done, stroke: t.done, width: 1, text: t.text, marker: ['check', t.muted] },
-  failed: { fill: t.node, stroke: t.fail, width: 2, text: t.text, marker: ['dot', t.fail] },
-  escalated: { fill: t.node, stroke: t.attn, width: 1.5, text: t.text, marker: ['bang', t.attn] },
+  pending: { marker: 'ring', c: t.muted, text: t.muted, weight: 450 },
+  ready: { marker: 'ring', c: t.text, text: t.text, weight: 450 },
+  running: { marker: 'live', c: t.text, text: t.text, weight: 600 },
+  verified: { marker: 'check', c: t.muted, text: t.text, weight: 450 },
+  failed: { marker: 'dot', c: t.fail, text: t.text, weight: 450, border: t.fail },
+  escalated: { marker: 'bang', c: t.attn, text: t.text, weight: 450, border: t.attn },
 });
 
-// Injected into the page: draws a 6px status marker centred on (x, y).
-function marker(el, parent, [kind, c], x, y) {
+// Injected into the page: a status marker, centred on (x, y).
+function marker(el, parent, kind, c, x, y) {
   if (kind === 'ring') return el('circle', { cx: x, cy: y, r: 2.8, fill: 'none', stroke: c, 'stroke-width': 1.3 }, parent);
-  if (kind === 'dot') return el('circle', { cx: x, cy: y, r: 3.2, fill: c }, parent);
-  if (kind === 'live') {
-    el('circle', { cx: x, cy: y, r: 5.6, fill: 'none', stroke: c, 'stroke-opacity': 0.4, 'stroke-width': 1.2 }, parent);
-    return el('circle', { cx: x, cy: y, r: 2.6, fill: c }, parent);
+  if (kind === 'live') el('circle', { cx: x, cy: y, r: 5.6, fill: 'none', stroke: c, 'stroke-opacity': 0.35, 'stroke-width': 1.2 }, parent);
+  if (kind === 'check') {
+    return el('path', {
+      d: `M${x - 3.4},${y + 0.2} L${x - 1},${y + 2.6} L${x + 3.6},${y - 2.6}`, fill: 'none', stroke: c,
+      'stroke-width': 1.6, 'stroke-linecap': 'round', 'stroke-linejoin': 'round',
+    }, parent);
   }
-  if (kind === 'check') return el('path', { d: `M${x - 3.4},${y + 0.2} L${x - 1},${y + 2.6} L${x + 3.6},${y - 2.6}`, fill: 'none', stroke: c, 'stroke-width': 1.6, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }, parent);
-  // bang: small filled triangle with a notch, for "needs a human"
-  el('path', { d: `M${x},${y - 4} L${x + 4.2},${y + 3.4} L${x - 4.2},${y + 3.4} Z`, fill: c, 'stroke-linejoin': 'round' }, parent);
-  return el('rect', { x: x - 0.6, y: y - 1.4, width: 1.2, height: 2.6, rx: 0.6, fill: '#fff', 'fill-opacity': 0.9 }, parent);
+  if (kind === 'bang') return el('path', { d: `M${x},${y - 4} L${x + 4.2},${y + 3.4} L${x - 4.2},${y + 3.4} Z`, fill: c }, parent);
+  return el('circle', { cx: x, cy: y, r: kind === 'live' ? 2.6 : 3.2, fill: c }, parent);
 }
 
-// Runs in the page. Lays out and draws one graph card into <svg id="out">.
+// Runs in the page. Lays out and draws one graph into <svg id="out">.
 function draw({ spec, t, look }) {
   const NS = 'http://www.w3.org/2000/svg';
   const svg = document.getElementById('out');
@@ -71,12 +71,13 @@ function draw({ spec, t, look }) {
     parent.append(e);
     return e;
   };
-  const FS = 14, H = 34, RX = 9, PAD = 13, DOT = 6, DOTGAP = 9;
-  const ROW = 52, GAP = 30, BUS = 6, LOOP = 22, R = 10, ARW = 6, AW = 3.4, LS = 11;
+  const SANS = "'Geist', sans-serif", MONO = "'Geist Mono', monospace";
+  const FS = 13.5, VS = 11.5, H = 32, RX = 8, PAD = 12, DOT = 6, DOTGAP = 9;
+  const ROW = 50, GAP = 34, BUS = 6, LOOP = 22, R = 10, ARW = 6, AW = 3.4, LS = 11.5;
   const LINE = { 'stroke-width': 1.25, fill: 'none', 'stroke-linejoin': 'round' };
   const DOTTED = { 'stroke-dasharray': '0.1 4', 'stroke-linecap': 'round', 'stroke-width': 1.6, fill: 'none' };
-  const measure = (text, size) => {
-    const m = el('text', { 'font-size': size });
+  const measure = (text, size, family, weight = 450) => {
+    const m = el('text', { 'font-size': size, 'font-family': family, 'font-weight': weight });
     m.textContent = text;
     const w = m.getComputedTextLength();
     m.remove();
@@ -85,16 +86,15 @@ function draw({ spec, t, look }) {
 
   const defs = el('defs');
   const lift = el('filter', { id: 'lift', x: '-20%', y: '-40%', width: '140%', height: '180%' }, defs);
-  el('feDropShadow', { dx: 0, dy: 1, stdDeviation: 1.2, 'flood-color': '#000', 'flood-opacity': t.shadow }, lift);
-  const card = el('g');
+  el('feDropShadow', { dx: 0, dy: 1, stdDeviation: 1, 'flood-color': '#000', 'flood-opacity': t.shadow }, lift);
   const g = el('g');
   const edges = el('g', {}, g), labels = el('g', {}, g), nodes = el('g', {}, g);
 
   // Every node in a column takes the column's width, so stacks line up.
   const N = new Map(spec.nodes.map((n) => [n.id, { ...n }]));
   for (const n of N.values()) {
-    n.suffix = n.visits ? ` ×${n.visits}` : '';
-    n.tw = measure(n.id + n.suffix, FS);
+    n.suffix = n.visits ? `×${n.visits}` : '';
+    n.tw = measure(n.id, FS, SANS, look[n.state].weight) + (n.suffix ? 7 + measure(n.suffix, VS, MONO) : 0);
     n.w = 2 * PAD + DOT + DOTGAP + n.tw;
   }
   const cols = Math.max(...[...N.values()].map((n) => n.col)) + 1;
@@ -119,15 +119,13 @@ function draw({ spec, t, look }) {
     el('path', { d: `M${x + p[0][0]},${y + p[0][1]} L${x},${y} L${x + p[1][0]},${y + p[1][1]} Z`, fill: color }, edges);
   };
   const text = (x, y, s, color, anchor) => {
-    const tx = el('text', { x, y: y + 3.8, 'text-anchor': anchor, 'font-size': LS, 'font-weight': 500, fill: color }, labels);
+    const tx = el('text', { x, y: y + 3.6, 'text-anchor': anchor, 'font-size': LS, 'font-family': MONO, 'font-weight': 500, 'letter-spacing': 0.3, fill: color }, labels);
     tx.textContent = s;
-    return tx;
   };
 
-  // Forward edges, orthogonal with rounded corners. Plain edges turn on a bus
-  // in the middle of the column gap (fan-outs just left of it, joins just right),
-  // so branches share one clean trunk. Labelled edges leave from the top or
-  // bottom of their node and turn into the target, label beside the riser.
+  // Forward edges. Plain edges turn on a bus in the middle of the column gap
+  // (fan-outs just left of it, joins just right), so branches share one trunk.
+  // Labelled edges rise from the top or bottom of their node, label beside the riser.
   for (const e of fwd) {
     const a = N.get(e.from), b = N.get(e.to);
     const ya = a.cy, yb = b.cy, xe = b.x - ARW, s = Math.sign(yb - ya);
@@ -171,47 +169,42 @@ function draw({ spec, t, look }) {
     }, edges);
     arrow(hx, hy, up ? 'down' : 'up', color);
     if (e.label) {
-      const w = measure(e.label, LS) + 12, mx = (tx + hx) / 2;
-      el('rect', { x: mx - w / 2, y: cy - 9, width: w, height: 18, fill: t.canvas }, labels);
+      const w = measure(e.label, LS, MONO) + 12, mx = (tx + hx) / 2;
+      el('rect', { x: mx - w / 2, y: cy - 9, width: w, height: 18, fill: t.page }, labels);
       text(mx, cy, e.label, t.fail, 'middle');
     }
   }
 
-  // Nodes: neutral pill; state shows as marker, border weight and fill only.
-  // Content is left-aligned so stacked markers line up.
+  // Nodes: one neutral pill; the state is the marker and label weight, and
+  // the two attention states also take their accent as the border.
   for (const n of N.values()) {
-    const st = look[n.state];
-    const inset = st.width / 2;
+    const st = look[n.state], bw = st.border ? 1.5 : 1;
     el('rect', {
-      x: n.x + inset, y: n.y + inset, width: n.w - 2 * inset, height: H - 2 * inset, rx: RX, fill: st.fill,
-      stroke: st.stroke, 'stroke-width': st.width, ...(st.dash ? { 'stroke-dasharray': st.dash } : {}),
-      filter: n.state === 'verified' ? 'none' : 'url(#lift)',
+      x: n.x + bw / 2, y: n.y + bw / 2, width: n.w - bw, height: H - bw, rx: RX,
+      fill: t.node, stroke: st.border || t.nodeLine, 'stroke-width': bw, filter: 'url(#lift)',
     }, nodes);
     const x0 = n.x + PAD;
-    marker(el, nodes, st.marker, x0 + DOT / 2, n.cy);
-    const label = el('text', { x: x0 + DOT + DOTGAP, y: n.cy + 4.8, 'font-size': FS, 'font-weight': n.state === 'running' ? 500 : 400, fill: st.text }, nodes);
+    marker(el, nodes, st.marker, st.c, x0 + DOT / 2, n.cy);
+    const label = el('text', {
+      x: x0 + DOT + DOTGAP, y: n.cy + 4.6, 'font-size': FS, 'font-family': SANS, 'font-weight': st.weight, fill: st.text,
+    }, nodes);
     label.textContent = n.id;
     if (n.suffix) {
-      const v = el('tspan', { fill: t.muted }, label);
+      const v = el('tspan', { dx: 7, 'font-size': VS, 'font-family': MONO, fill: t.muted }, label);
       v.textContent = n.suffix;
     }
   }
 
-  // Card around the content, with an eyebrow title.
-  const b = g.getBBox();
-  const PX = 22, TOP = 58, BOTTOM = 24;
-  const W = Math.ceil(b.width + 2 * PX), Ht = Math.ceil(b.height + TOP + BOTTOM);
-  g.setAttribute('transform', `translate(${PX - b.x},${TOP - b.y})`);
-  el('rect', { x: 0.5, y: 0.5, width: W - 1, height: Ht - 1, rx: 14, fill: t.canvas, stroke: t.card }, card);
-  el('circle', { cx: 25, cy: 26, r: 3, fill: t.muted }, card);
-  const title = el('text', { x: 36, y: 30, 'font-size': 12, 'letter-spacing': 0.6, 'font-weight': 500, fill: t.muted }, card);
-  title.textContent = spec.title.toUpperCase();
+  // Transparent margin: tight at the sides, room above and below for the prose.
+  const PX = 8, PY = 22, b = g.getBBox();
+  const W = Math.ceil(b.width + 2 * PX), Ht = Math.ceil(b.height + 2 * PY);
+  g.setAttribute('transform', `translate(${PX - b.x},${PY - b.y})`);
   svg.setAttribute('width', W);
   svg.setAttribute('height', Ht);
   svg.setAttribute('viewBox', `0 0 ${W} ${Ht}`);
 }
 
-// Runs in the page. Draws the one-line colour key, in the nodes' marker style.
+// Runs in the page. Draws the one-line colour key: node states, then edge types.
 function legend({ t, look, states }) {
   const NS = 'http://www.w3.org/2000/svg';
   const svg = document.getElementById('out');
@@ -222,40 +215,41 @@ function legend({ t, look, states }) {
     return e;
   };
   const DOTTED = { 'stroke-dasharray': '0.1 4', 'stroke-linecap': 'round', 'stroke-width': 1.6 };
-  const card = el('rect', { x: 0.5, y: 0.5, rx: 12, fill: t.canvas, stroke: t.card });
-  let x = 22;
-  const cy = 24;
-  const text = (s) => {
-    const tx = el('text', { x, y: cy + 4, 'font-size': 11.5, 'letter-spacing': 0.5, 'font-weight': 500, fill: t.muted });
+  let x = 8;
+  const cy = 14;
+  const text = (s, color, gap = 20) => {
+    const tx = el('text', { x, y: cy + 4.3, 'font-size': 12.5, 'font-family': "'Geist', sans-serif", 'font-weight': 450, fill: color });
     tx.textContent = s;
-    x += tx.getComputedTextLength() + 22;
+    x += tx.getComputedTextLength() + gap;
   };
   for (const k of states) {
-    marker(el, svg, look[k].marker, x + 3, cy);
-    x += 14;
-    text(k.toUpperCase());
+    marker(el, svg, look[k].marker, look[k].c, x + 3, cy);
+    x += 13;
+    text(k.toUpperCase(), t.muted);
   }
-  x += 4;
+  x += 6;
+  el('rect', { x, y: cy - 8, width: 1, height: 16, fill: t.nodeLine });
+  x += 22;
   el('path', { d: `M${x},${cy} H${x + 20}`, stroke: t.fail, ...DOTTED });
   x += 28;
-  text('FAIL');
+  text('FAIL edge', t.muted);
   el('path', { d: `M${x},${cy} H${x + 20}`, stroke: t.loop, ...DOTTED });
   x += 28;
-  text('LOOP BACK');
-  text('×N VISITS');
-  const W = Math.ceil(x), Ht = 48;
-  card.setAttribute('width', W - 1);
-  card.setAttribute('height', Ht - 1);
+  text('loop back', t.muted);
+  text('×N', t.text, 7);
+  text('visits', t.muted, 8);
+  const W = Math.ceil(x), Ht = 28;
   svg.setAttribute('width', W);
   svg.setAttribute('height', Ht);
   svg.setAttribute('viewBox', `0 0 ${W} ${Ht}`);
 }
 
-const font = fs.readFileSync(FONT).toString('base64');
+const font = (f) => fs.readFileSync(path.join(FONTS, f)).toString('base64');
 const html = `<style>
-  @font-face { font-family: 'Geist Mono'; src: url(data:font/woff2;base64,${font}) format('woff2'); font-weight: 100 900; }
+  @font-face { font-family: 'Geist'; src: url(data:font/woff2;base64,${font('geist-sans/Geist-Variable.woff2')}) format('woff2'); font-weight: 100 900; }
+  @font-face { font-family: 'Geist Mono'; src: url(data:font/woff2;base64,${font('geist-mono/GeistMono-Variable.woff2')}) format('woff2'); font-weight: 100 900; }
   body { margin: 0; background: transparent; }
-  svg { display: block; font-family: 'Geist Mono', monospace; }
+  svg { display: block; }
 </style><svg id="out" xmlns="http://www.w3.org/2000/svg"></svg>`;
 
 const browser = await chromium.launch({ executablePath: process.env.CHROME, args: ['--no-sandbox'] });
@@ -265,7 +259,7 @@ async function render(name, fn, arg) {
   for (const [theme, t] of Object.entries(themes)) {
     await page.setContent(html);
     await page.addScriptTag({ content: marker.toString() });
-    await page.evaluate(() => document.fonts.load("500 12px 'Geist Mono'"));
+    await page.evaluate(() => Promise.all([document.fonts.load("450 13px 'Geist'"), document.fonts.load("500 11px 'Geist Mono'")]));
     await page.evaluate(fn, { ...arg, t, look: look(t), states: STATES });
     const svg = await page.$('svg');
     widths[name] = (await svg.boundingBox()).width;

@@ -1,5 +1,4 @@
 {
-  "title": "workgraph · release canary",
   "nodes": [
     { "id": "freeze",   "col": 0, "row": 0,    "state": "verified" },
     { "id": "build",    "col": 1, "row": 0,    "state": "verified", "visits": 2 },
