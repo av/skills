@@ -23,7 +23,7 @@ back to `plan`.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="./assets/graph-legend-dark.png">
-  <img src="./assets/graph-legend-light.png" width="754" alt="Key: hollow gray dot PENDING, blue READY, orange RUNNING, green VERIFIED, red FAILED, purple ESCALATED; red dotted line = FAIL edge; gray dotted line = loop back; ×N = visit count">
+  <img src="./assets/graph-legend-light.png" width="738" alt="Key: hollow gray dot PENDING, blue READY, orange RUNNING, green VERIFIED, red FAILED, purple ESCALATED; red dotted line = FAIL edge; gray dotted line = loop back; ×N = visit count">
 </picture>
 
 ### Multi-source research report with fact-check and revision
@@ -35,7 +35,7 @@ second check is running now. A `critic` FAIL goes back to `synth`.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="./assets/graph-research-report-dark.png">
-  <img src="./assets/graph-research-report-light.png" width="639" alt="Research report graph: scope, papers, filings, news, synth and revise verified; forums escalated; fact_check ×2 running; critic and publish pending">
+  <img src="./assets/graph-research-report-light.png" width="638" alt="Research report graph: scope, papers, filings, news, synth and revise verified; forums escalated; fact_check ×2 running; critic and publish pending">
 </picture>
 
 ### Release with a test matrix, canary and rollback

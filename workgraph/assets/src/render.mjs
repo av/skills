@@ -35,7 +35,7 @@ const themes = {
     edge: '#8c959f', loop: '#afb8c1', fail: '#cf222e', shadow: 0.05,
   },
   dark: {
-    page: '#0d1117', node: '#151b23', nodeLine: '#3d444d', text: '#f0f6fc', muted: '#9198a1',
+    page: '#0d1117', node: '#151b23', nodeLine: '#3d444d', text: '#f0f6fc', muted: '#b1b8c0',
     edge: '#656c76', loop: '#545b64', fail: '#f85149', shadow: 0,
   },
 };
@@ -59,7 +59,7 @@ function draw({ spec, t, status }) {
   };
   const SANS = "'Geist', sans-serif", MONO = "'Geist Mono', monospace";
   const FS = 13.5, VS = 11.5, H = 32, RX = 8, PAD = 12, DOT = 6, DOTGAP = 9;
-  const ROW = 50, GAP = 30, BUS = 6, LOOP = 20, R = 10, ARW = 6, AW = 3.4, LS = 10.5;
+  const ROW = 50, GAP = 34, BUS = 6, LOOP = 22, R = 10, ARW = 6, AW = 3.4, LS = 11.5;
   const LINE = { 'stroke-width': 1.25, fill: 'none', 'stroke-linejoin': 'round' };
   const DOTTED = { 'stroke-dasharray': '0.1 4', 'stroke-linecap': 'round', 'stroke-width': 1.6, fill: 'none' };
   const measure = (text, size, family) => {
@@ -180,9 +180,10 @@ function draw({ spec, t, status }) {
     }
   }
 
-  const P = 8, b = g.getBBox();
-  const W = Math.ceil(b.width + 2 * P), Ht = Math.ceil(b.height + 2 * P);
-  g.setAttribute('transform', `translate(${P - b.x},${P - b.y})`);
+  // Transparent margin: tight at the sides, room above and below for the prose.
+  const PX = 8, PY = 22, b = g.getBBox();
+  const W = Math.ceil(b.width + 2 * PX), Ht = Math.ceil(b.height + 2 * PY);
+  g.setAttribute('transform', `translate(${PX - b.x},${PY - b.y})`);
   svg.setAttribute('width', W);
   svg.setAttribute('height', Ht);
   svg.setAttribute('viewBox', `0 0 ${W} ${Ht}`);
@@ -202,7 +203,7 @@ function legend({ t, status }) {
   let x = 8;
   const cy = 14;
   const text = (s, color, gap = 20) => {
-    const tx = el('text', { x, y: cy + 3.9, 'font-size': 11, 'font-family': "'Geist Mono', monospace", 'font-weight': 500, 'letter-spacing': 0.3, fill: color });
+    const tx = el('text', { x, y: cy + 4.3, 'font-size': 12.5, 'font-family': "'Geist', sans-serif", 'font-weight': 450, fill: color });
     tx.textContent = s;
     x += tx.getComputedTextLength() + gap;
   };
@@ -216,12 +217,12 @@ function legend({ t, status }) {
   x += 22;
   el('path', { d: `M${x},${cy} H${x + 20}`, stroke: t.fail, ...DOTTED });
   x += 28;
-  text('FAIL EDGE', t.muted);
+  text('FAIL edge', t.muted);
   el('path', { d: `M${x},${cy} H${x + 20}`, stroke: t.loop, ...DOTTED });
   x += 28;
-  text('LOOP BACK', t.muted);
+  text('loop back', t.muted);
   text('×N', t.text, 7);
-  text('VISITS', t.muted, 8);
+  text('visits', t.muted, 8);
   const W = Math.ceil(x), Ht = 28;
   svg.setAttribute('width', W);
   svg.setAttribute('height', Ht);
