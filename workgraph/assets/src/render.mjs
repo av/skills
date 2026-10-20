@@ -51,8 +51,8 @@ function draw({ spec, t, status }) {
     parent.append(e);
     return e;
   };
-  const FS = 14, H = 34, RX = 9, PADL = 14, DOT = 6, DOTGAP = 10, PADR = 16;
-  const ROW = 54, GAP = 38, GAP_LABEL = 66, STUB = 9, LOOP = 22, R = 12, ARW = 6, AW = 3.4, LS = 11;
+  const FS = 14, H = 34, RX = 9, PADL = 12, DOT = 6, DOTGAP = 8, PADR = 13;
+  const ROW = 52, GAP = 28, GAP_LABEL = 54, STUB = 9, LOOP = 22, R = 12, ARW = 6, AW = 3.4, LS = 11;
   const DOTTED = { 'stroke-dasharray': '0.1 4', 'stroke-linecap': 'round', 'stroke-width': 1.6 };
   const measure = (text, size) => {
     const m = el('text', { 'font-size': size });
@@ -181,7 +181,7 @@ function draw({ spec, t, status }) {
 
   // Card around the content, with an eyebrow title and a faint dot grid.
   const b = g.getBBox();
-  const PX = 32, TOP = 58, BOTTOM = 30;
+  const PX = 24, TOP = 56, BOTTOM = 26;
   const W = Math.ceil(b.width + 2 * PX), Ht = Math.ceil(b.height + TOP + BOTTOM);
   g.setAttribute('transform', `translate(${PX - b.x},${TOP - b.y})`);
   el('rect', { x: 0.5, y: 0.5, width: W - 1, height: Ht - 1, rx: 14, fill: t.canvas, stroke: t.card }, card);

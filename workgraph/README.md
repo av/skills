@@ -23,7 +23,7 @@ back to `plan`.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="./assets/graph-legend-dark.png">
-  <img src="./assets/graph-legend-light.png" width="609" alt="Key: hollow gray dot PENDING, blue READY, orange RUNNING, green VERIFIED, red FAILED, purple ESCALATED; red dotted line = FAIL edge; gray dotted line = loop back; ×2 = visit count">
+  <img src="./assets/graph-legend-light.png" width="692" alt="Key: hollow gray dot PENDING, blue READY, orange RUNNING, green VERIFIED, red FAILED, purple ESCALATED; red dotted line = FAIL edge; gray dotted line = loop back; ×2 = visit count">
 </picture>
 
 ### Multi-source research report with fact-check and revision
@@ -47,7 +47,7 @@ on macOS and e2e, while `notes` waits at `rollout`.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="./assets/graph-release-canary-dark.png">
-  <img src="./assets/graph-release-canary-light.png" width="747" alt="Release graph: freeze, build ×2, linux ×2, windows ×2, rollback, hotfix and notes verified; macos ×2 and e2e ×2 running; canary failed; gate and rollout pending">
+  <img src="./assets/graph-release-canary-light.png" width="745" alt="Release graph: freeze, build ×2, linux ×2, windows ×2, rollback, hotfix and notes verified; macos ×2 and e2e ×2 running; canary failed; gate and rollout pending">
 </picture>
 
 ```bash
