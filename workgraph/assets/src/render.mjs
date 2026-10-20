@@ -28,11 +28,11 @@ const FONT = path.join(process.cwd(), 'node_modules/geist/dist/fonts/geist-mono/
 // so shared segments never darken where they overlap.
 const themes = {
   dark: {
-    canvas: '#10151c', card: '#2a323c', grid: '#1b2129', node: '#161c24', nodeLine: '#2b333d', done: '#222a33',
+    canvas: '#10151c', card: '#2a323c', node: '#161c24', nodeLine: '#2b333d', done: '#222a33',
     text: '#e6edf3', muted: '#9aa3ad', edge: '#5f6873', loop: '#5a636e', fail: '#f85149', attn: '#d29922', shadow: 0,
   },
   light: {
-    canvas: '#f6f8fa', card: '#dfe4e9', grid: '#e1e6eb', node: '#ffffff', nodeLine: '#d6dce2', done: '#e8ecf0',
+    canvas: '#f6f8fa', card: '#dfe4e9', node: '#ffffff', nodeLine: '#d6dce2', done: '#e8ecf0',
     text: '#1f2328', muted: '#656d76', edge: '#9aa3ad', loop: '#a8b1bb', fail: '#cf222e', attn: '#9a6700', shadow: 0.05,
   },
 };
@@ -41,9 +41,9 @@ const STATES = ['pending', 'ready', 'running', 'verified', 'failed', 'escalated'
 const look = (t) => ({
   pending: { fill: t.node, stroke: t.muted, width: 1, dash: '3 3', text: t.muted, marker: ['ring', t.muted] },
   ready: { fill: t.node, stroke: t.muted, width: 1, text: t.text, marker: ['ring', t.text] },
-  running: { fill: t.node, stroke: t.text, width: 1.5, text: t.text, marker: ['live', t.text] },
+  running: { fill: t.node, stroke: t.text, width: 1, text: t.text, marker: ['live', t.text] },
   verified: { fill: t.done, stroke: t.done, width: 1, text: t.text, marker: ['check', t.muted] },
-  failed: { fill: t.node, stroke: t.fail, width: 1.5, text: t.text, marker: ['dot', t.fail] },
+  failed: { fill: t.node, stroke: t.fail, width: 2, text: t.text, marker: ['dot', t.fail] },
   escalated: { fill: t.node, stroke: t.attn, width: 1.5, text: t.text, marker: ['bang', t.attn] },
 });
 
@@ -84,8 +84,6 @@ function draw({ spec, t, look }) {
   };
 
   const defs = el('defs');
-  const pat = el('pattern', { id: 'grid', width: 16, height: 16, patternUnits: 'userSpaceOnUse' }, defs);
-  el('circle', { cx: 8, cy: 8, r: 0.9, fill: t.grid }, pat);
   const lift = el('filter', { id: 'lift', x: '-20%', y: '-40%', width: '140%', height: '180%' }, defs);
   el('feDropShadow', { dx: 0, dy: 1, stdDeviation: 1.2, 'flood-color': '#000', 'flood-opacity': t.shadow }, lift);
   const card = el('g');
@@ -199,13 +197,12 @@ function draw({ spec, t, look }) {
     }
   }
 
-  // Card around the content, with an eyebrow title and a faint dot grid.
+  // Card around the content, with an eyebrow title.
   const b = g.getBBox();
   const PX = 22, TOP = 58, BOTTOM = 24;
   const W = Math.ceil(b.width + 2 * PX), Ht = Math.ceil(b.height + TOP + BOTTOM);
   g.setAttribute('transform', `translate(${PX - b.x},${TOP - b.y})`);
   el('rect', { x: 0.5, y: 0.5, width: W - 1, height: Ht - 1, rx: 14, fill: t.canvas, stroke: t.card }, card);
-  el('rect', { x: 1, y: 1, width: W - 2, height: Ht - 2, rx: 14, fill: 'url(#grid)' }, card);
   el('circle', { cx: 25, cy: 26, r: 3, fill: t.muted }, card);
   const title = el('text', { x: 36, y: 30, 'font-size': 12, 'letter-spacing': 0.6, 'font-weight': 500, fill: t.muted }, card);
   title.textContent = spec.title.toUpperCase();
