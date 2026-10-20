@@ -32,12 +32,12 @@ const status = {
 };
 const themes = {
   dark: {
-    canvas: '#10151c', card: '#232a33', grid: '#1b2129', node: '#161c24', nodeLine: '#29313b',
-    text: '#e6edf3', muted: '#8d96a0', edge: '#5a636e', loop: '#4b545f', fail: '#f0605a', shadow: 0,
+    canvas: '#10151c', card: '#2a323c', grid: '#1b2129', node: '#161c24', nodeLine: '#2b333d',
+    text: '#e6edf3', muted: '#9aa3ad', edge: '#5f6873', loop: '#5a636e', fail: '#f0605a', shadow: 0,
   },
   light: {
     canvas: '#f6f8fa', card: '#dfe4e9', grid: '#e1e6eb', node: '#ffffff', nodeLine: '#d6dce2',
-    text: '#1f2328', muted: '#656d76', edge: '#9aa3ad', loop: '#b4bcc6', fail: '#d73a33', shadow: 0.05,
+    text: '#1f2328', muted: '#656d76', edge: '#9aa3ad', loop: '#a8b1bb', fail: '#d73a33', shadow: 0.05,
   },
 };
 
@@ -160,7 +160,7 @@ function draw({ spec, t, status }) {
   }
 
   // Nodes: neutral pill, hairline border, status dot; attention states get an
-  // accent border. Content is centred in the pill.
+  // accent border. Content is left-aligned so stacked dots line up.
   for (const n of N.values()) {
     const c = status[n.state];
     const loud = ['running', 'failed', 'escalated'].includes(n.state);
@@ -168,7 +168,7 @@ function draw({ spec, t, status }) {
       x: n.x + 0.5, y: n.y + 0.5, width: n.w - 1, height: H - 1, rx: RX, fill: t.node,
       stroke: loud ? c : t.nodeLine, 'stroke-width': 1, filter: 'url(#lift)',
     }, nodes);
-    const x0 = n.cx - (DOT + DOTGAP + n.tw) / 2, dx = x0 + DOT / 2;
+    const x0 = n.x + PAD, dx = x0 + DOT / 2;
     if (n.state === 'running') el('circle', { cx: dx, cy: n.cy, r: 5.6, fill: 'none', stroke: c, 'stroke-opacity': 0.45, 'stroke-width': 1.2 }, nodes);
     if (n.state === 'pending') el('circle', { cx: dx, cy: n.cy, r: 2.7, fill: 'none', stroke: c, 'stroke-width': 1.3 }, nodes);
     else el('circle', { cx: dx, cy: n.cy, r: 3.1, fill: c }, nodes);
