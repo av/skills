@@ -1,5 +1,4 @@
 {
-  "title": "workgraph · research report",
   "nodes": [
     { "id": "scope",      "col": 0, "row": 0,    "state": "verified" },
     { "id": "papers",     "col": 1, "row": -1.5, "state": "verified" },

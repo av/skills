@@ -1,8 +1,8 @@
 // Renders the workgraph README sample graphs and colour key.
-//   src/<name>.json -> ../graph-<name>-dark.png, ../graph-<name>-light.png (2x, rounded card)
-//   (built in)      -> ../graph-legend-dark.png, ../graph-legend-light.png
-// Nodes are hand-placed on a column/row grid in the JSON. Forward edges run
-// from a node's right port to the next node's left port; edges with
+//   src/<name>.json -> ../graph-<name>-light.png, ../graph-<name>-dark.png (2x, transparent)
+//   (built in)      -> ../graph-legend-light.png, ../graph-legend-dark.png
+// Nodes are hand-placed on a column/row grid in the JSON. Forward edges are
+// orthogonal: they turn on a bus in the middle of each column gap. Edges with
 // "loop": "above" | "below" are drawn as rounded arcs outside every node they span.
 //
 // Run from any directory that has the packages installed:
@@ -20,28 +20,34 @@ const { chromium } = require('playwright-core');
 const SRC = path.dirname(fileURLToPath(import.meta.url));
 const OUT = path.dirname(SRC);
 const README_WIDTH = 860; // github.com README column is ~860px wide
-const FONT = path.join(process.cwd(), 'node_modules/geist/dist/fonts/geist-mono/GeistMono-Variable.woff2');
+const FONTS = path.join(process.cwd(), 'node_modules/geist/dist/fonts');
 
-// Status colours from SKILL.md; shown only as the status dot and the border
-// of nodes that need attention. Everything else is neutral, matched to
-// GitHub's own light and dark surfaces. Edge colours are opaque so shared
-// segments never darken where they overlap.
+// Status colours from SKILL.md, used only for the small status marker.
 const status = {
   pending: '#9e9e9e', ready: '#1e88e5', running: '#fb8c00',
   verified: '#43a047', failed: '#e53935', escalated: '#8e24aa',
 };
+// Neutral ink per GitHub theme; `page` is GitHub's background, used behind
+// inline labels. Edge colours are opaque so shared segments never darken.
 const themes = {
-  dark: {
-    canvas: '#10151c', card: '#2a323c', grid: '#1b2129', node: '#161c24', nodeLine: '#2b333d',
-    text: '#e6edf3', muted: '#9aa3ad', edge: '#5f6873', loop: '#5a636e', fail: '#f0605a', shadow: 0,
-  },
   light: {
-    canvas: '#f6f8fa', card: '#dfe4e9', grid: '#e1e6eb', node: '#ffffff', nodeLine: '#d6dce2',
-    text: '#1f2328', muted: '#656d76', edge: '#9aa3ad', loop: '#a8b1bb', fail: '#d73a33', shadow: 0.05,
+    page: '#ffffff', node: '#ffffff', nodeLine: '#d1d9e0', text: '#1f2328', muted: '#59636e',
+    edge: '#8c959f', loop: '#afb8c1', fail: '#cf222e', shadow: 0.05,
+  },
+  dark: {
+    page: '#0d1117', node: '#151b23', nodeLine: '#3d444d', text: '#f0f6fc', muted: '#9198a1',
+    edge: '#656c76', loop: '#545b64', fail: '#f85149', shadow: 0,
   },
 };
 
-// Runs in the page. Lays out and draws one graph card into <svg id="out">.
+// Injected into the page: the status marker, centred on (x, y).
+function marker(el, parent, state, c, x, y) {
+  if (state === 'pending') return el('circle', { cx: x, cy: y, r: 2.8, fill: 'none', stroke: c, 'stroke-width': 1.3 }, parent);
+  if (state === 'running') el('circle', { cx: x, cy: y, r: 5.6, fill: 'none', stroke: c, 'stroke-opacity': 0.35, 'stroke-width': 1.2 }, parent);
+  return el('circle', { cx: x, cy: y, r: 3.2, fill: c }, parent);
+}
+
+// Runs in the page. Lays out and draws one graph into <svg id="out">.
 function draw({ spec, t, status }) {
   const NS = 'http://www.w3.org/2000/svg';
   const svg = document.getElementById('out');
@@ -51,12 +57,13 @@ function draw({ spec, t, status }) {
     parent.append(e);
     return e;
   };
-  const FS = 14, H = 34, RX = 9, PAD = 13, DOT = 6, DOTGAP = 9;
-  const ROW = 52, GAP = 30, BUS = 6, LOOP = 22, R = 10, ARW = 6, AW = 3.4, LS = 11;
+  const SANS = "'Geist', sans-serif", MONO = "'Geist Mono', monospace";
+  const FS = 13.5, VS = 11.5, H = 32, RX = 8, PAD = 12, DOT = 6, DOTGAP = 9;
+  const ROW = 50, GAP = 30, BUS = 6, LOOP = 20, R = 10, ARW = 6, AW = 3.4, LS = 10.5;
   const LINE = { 'stroke-width': 1.25, fill: 'none', 'stroke-linejoin': 'round' };
   const DOTTED = { 'stroke-dasharray': '0.1 4', 'stroke-linecap': 'round', 'stroke-width': 1.6, fill: 'none' };
-  const measure = (text, size) => {
-    const m = el('text', { 'font-size': size });
+  const measure = (text, size, family) => {
+    const m = el('text', { 'font-size': size, 'font-family': family, 'font-weight': 450 });
     m.textContent = text;
     const w = m.getComputedTextLength();
     m.remove();
@@ -64,19 +71,16 @@ function draw({ spec, t, status }) {
   };
 
   const defs = el('defs');
-  const pat = el('pattern', { id: 'grid', width: 16, height: 16, patternUnits: 'userSpaceOnUse' }, defs);
-  el('circle', { cx: 8, cy: 8, r: 0.9, fill: t.grid }, pat);
   const lift = el('filter', { id: 'lift', x: '-20%', y: '-40%', width: '140%', height: '180%' }, defs);
-  el('feDropShadow', { dx: 0, dy: 1, stdDeviation: 1.2, 'flood-color': '#000', 'flood-opacity': t.shadow }, lift);
-  const card = el('g');
+  el('feDropShadow', { dx: 0, dy: 1, stdDeviation: 1, 'flood-color': '#000', 'flood-opacity': t.shadow }, lift);
   const g = el('g');
   const edges = el('g', {}, g), labels = el('g', {}, g), nodes = el('g', {}, g);
 
   // Every node in a column takes the column's width, so stacks line up.
   const N = new Map(spec.nodes.map((n) => [n.id, { ...n }]));
   for (const n of N.values()) {
-    n.suffix = n.visits ? ` ×${n.visits}` : '';
-    n.tw = measure(n.id + n.suffix, FS);
+    n.suffix = n.visits ? `×${n.visits}` : '';
+    n.tw = measure(n.id, FS, SANS) + (n.suffix ? 7 + measure(n.suffix, VS, MONO) : 0);
     n.w = 2 * PAD + DOT + DOTGAP + n.tw;
   }
   const cols = Math.max(...[...N.values()].map((n) => n.col)) + 1;
@@ -101,15 +105,13 @@ function draw({ spec, t, status }) {
     el('path', { d: `M${x + p[0][0]},${y + p[0][1]} L${x},${y} L${x + p[1][0]},${y + p[1][1]} Z`, fill: color }, edges);
   };
   const text = (x, y, s, color, anchor) => {
-    const tx = el('text', { x, y: y + 3.8, 'text-anchor': anchor, 'font-size': LS, 'font-weight': 500, fill: color }, labels);
+    const tx = el('text', { x, y: y + 3.6, 'text-anchor': anchor, 'font-size': LS, 'font-family': MONO, 'font-weight': 500, 'letter-spacing': 0.3, fill: color }, labels);
     tx.textContent = s;
-    return tx;
   };
 
-  // Forward edges, orthogonal with rounded corners. Plain edges turn on a bus
-  // in the middle of the column gap (fan-outs just left of it, joins just right),
-  // so branches share one clean trunk. Labelled edges leave from the top or
-  // bottom of their node and turn into the target, label beside the riser.
+  // Forward edges. Plain edges turn on a bus in the middle of the column gap
+  // (fan-outs just left of it, joins just right), so branches share one trunk.
+  // Labelled edges rise from the top or bottom of their node, label beside the riser.
   for (const e of fwd) {
     const a = N.get(e.from), b = N.get(e.to);
     const ya = a.cy, yb = b.cy, xe = b.x - ARW, s = Math.sign(yb - ya);
@@ -153,95 +155,85 @@ function draw({ spec, t, status }) {
     }, edges);
     arrow(hx, hy, up ? 'down' : 'up', color);
     if (e.label) {
-      const w = measure(e.label, LS) + 12, mx = (tx + hx) / 2;
-      el('rect', { x: mx - w / 2, y: cy - 9, width: w, height: 18, fill: t.canvas }, labels);
+      const w = measure(e.label, LS, MONO) + 12, mx = (tx + hx) / 2;
+      el('rect', { x: mx - w / 2, y: cy - 9, width: w, height: 18, fill: t.page }, labels);
       text(mx, cy, e.label, t.fail, 'middle');
     }
   }
 
-  // Nodes: neutral pill, hairline border, status dot; attention states get an
-  // accent border. Content is left-aligned so stacked dots line up.
+  // Nodes: one neutral pill for every state; the state is the small marker.
   for (const n of N.values()) {
-    const c = status[n.state];
-    const loud = ['running', 'failed', 'escalated'].includes(n.state);
     el('rect', {
-      x: n.x + 0.5, y: n.y + 0.5, width: n.w - 1, height: H - 1, rx: RX, fill: t.node,
-      stroke: loud ? c : t.nodeLine, 'stroke-width': 1, filter: 'url(#lift)',
+      x: n.x + 0.5, y: n.y + 0.5, width: n.w - 1, height: H - 1, rx: RX,
+      fill: t.node, stroke: t.nodeLine, 'stroke-width': 1, filter: 'url(#lift)',
     }, nodes);
-    const x0 = n.x + PAD, dx = x0 + DOT / 2;
-    if (n.state === 'running') el('circle', { cx: dx, cy: n.cy, r: 5.6, fill: 'none', stroke: c, 'stroke-opacity': 0.45, 'stroke-width': 1.2 }, nodes);
-    if (n.state === 'pending') el('circle', { cx: dx, cy: n.cy, r: 2.7, fill: 'none', stroke: c, 'stroke-width': 1.3 }, nodes);
-    else el('circle', { cx: dx, cy: n.cy, r: 3.1, fill: c }, nodes);
-    const label = el('text', { x: x0 + DOT + DOTGAP, y: n.cy + 4.8, 'font-size': FS, 'font-weight': 400, fill: n.state === 'pending' ? t.muted : t.text }, nodes);
+    const x0 = n.x + PAD;
+    marker(el, nodes, n.state, status[n.state], x0 + DOT / 2, n.cy);
+    const label = el('text', {
+      x: x0 + DOT + DOTGAP, y: n.cy + 4.6, 'font-size': FS, 'font-family': SANS, 'font-weight': 450,
+      fill: n.state === 'pending' ? t.muted : t.text,
+    }, nodes);
     label.textContent = n.id;
     if (n.suffix) {
-      const v = el('tspan', { fill: t.muted }, label);
+      const v = el('tspan', { dx: 7, 'font-size': VS, 'font-family': MONO, fill: t.muted }, label);
       v.textContent = n.suffix;
     }
   }
 
-  // Card around the content, with an eyebrow title and a faint dot grid.
-  const b = g.getBBox();
-  const PX = 22, TOP = 58, BOTTOM = 24;
-  const W = Math.ceil(b.width + 2 * PX), Ht = Math.ceil(b.height + TOP + BOTTOM);
-  g.setAttribute('transform', `translate(${PX - b.x},${TOP - b.y})`);
-  el('rect', { x: 0.5, y: 0.5, width: W - 1, height: Ht - 1, rx: 14, fill: t.canvas, stroke: t.card }, card);
-  el('rect', { x: 1, y: 1, width: W - 2, height: Ht - 2, rx: 14, fill: 'url(#grid)' }, card);
-  el('circle', { cx: 25, cy: 26, r: 3, fill: t.muted }, card);
-  const title = el('text', { x: 36, y: 30, 'font-size': 12, 'letter-spacing': 0.6, 'font-weight': 500, fill: t.muted }, card);
-  title.textContent = spec.title.toUpperCase();
+  const P = 8, b = g.getBBox();
+  const W = Math.ceil(b.width + 2 * P), Ht = Math.ceil(b.height + 2 * P);
+  g.setAttribute('transform', `translate(${P - b.x},${P - b.y})`);
   svg.setAttribute('width', W);
   svg.setAttribute('height', Ht);
   svg.setAttribute('viewBox', `0 0 ${W} ${Ht}`);
 }
 
-// Runs in the page. Draws the one-line colour key, in the nodes' marker style.
+// Runs in the page. Draws the one-line colour key: node states, then edge types.
 function legend({ t, status }) {
   const NS = 'http://www.w3.org/2000/svg';
   const svg = document.getElementById('out');
-  const el = (name, attrs = {}) => {
+  const el = (name, attrs = {}, parent = svg) => {
     const e = document.createElementNS(NS, name);
     for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v);
-    svg.append(e);
+    parent.append(e);
     return e;
   };
   const DOTTED = { 'stroke-dasharray': '0.1 4', 'stroke-linecap': 'round', 'stroke-width': 1.6 };
-  const card = el('rect', { x: 0.5, y: 0.5, rx: 12, fill: t.canvas, stroke: t.card });
-  let x = 22;
-  const cy = 24;
-  const text = (s) => {
-    const tx = el('text', { x, y: cy + 4, 'font-size': 11.5, 'letter-spacing': 0.5, 'font-weight': 500, fill: t.muted });
+  let x = 8;
+  const cy = 14;
+  const text = (s, color, gap = 20) => {
+    const tx = el('text', { x, y: cy + 3.9, 'font-size': 11, 'font-family': "'Geist Mono', monospace", 'font-weight': 500, 'letter-spacing': 0.3, fill: color });
     tx.textContent = s;
-    x += tx.getComputedTextLength() + 22;
+    x += tx.getComputedTextLength() + gap;
   };
   for (const [k, c] of Object.entries(status)) {
-    if (k === 'running') el('circle', { cx: x + 3, cy, r: 5.6, fill: 'none', stroke: c, 'stroke-opacity': 0.45, 'stroke-width': 1.2 });
-    if (k === 'pending') el('circle', { cx: x + 3, cy, r: 2.7, fill: 'none', stroke: c, 'stroke-width': 1.3 });
-    else el('circle', { cx: x + 3, cy, r: 3.1, fill: c });
-    x += 14;
-    text(k.toUpperCase());
+    marker(el, svg, k, c, x + 3, cy);
+    x += 13;
+    text(k.toUpperCase(), t.muted);
   }
-  x += 4;
+  x += 6;
+  el('rect', { x, y: cy - 8, width: 1, height: 16, fill: t.nodeLine });
+  x += 22;
   el('path', { d: `M${x},${cy} H${x + 20}`, stroke: t.fail, ...DOTTED });
   x += 28;
-  text('FAIL');
+  text('FAIL EDGE', t.muted);
   el('path', { d: `M${x},${cy} H${x + 20}`, stroke: t.loop, ...DOTTED });
   x += 28;
-  text('LOOP BACK');
-  text('×N VISITS');
-  const W = Math.ceil(x), Ht = 48;
-  card.setAttribute('width', W - 1);
-  card.setAttribute('height', Ht - 1);
+  text('LOOP BACK', t.muted);
+  text('×N', t.text, 7);
+  text('VISITS', t.muted, 8);
+  const W = Math.ceil(x), Ht = 28;
   svg.setAttribute('width', W);
   svg.setAttribute('height', Ht);
   svg.setAttribute('viewBox', `0 0 ${W} ${Ht}`);
 }
 
-const font = fs.readFileSync(FONT).toString('base64');
+const font = (f) => fs.readFileSync(path.join(FONTS, f)).toString('base64');
 const html = `<style>
-  @font-face { font-family: 'Geist Mono'; src: url(data:font/woff2;base64,${font}) format('woff2'); font-weight: 100 900; }
+  @font-face { font-family: 'Geist'; src: url(data:font/woff2;base64,${font('geist-sans/Geist-Variable.woff2')}) format('woff2'); font-weight: 100 900; }
+  @font-face { font-family: 'Geist Mono'; src: url(data:font/woff2;base64,${font('geist-mono/GeistMono-Variable.woff2')}) format('woff2'); font-weight: 100 900; }
   body { margin: 0; background: transparent; }
-  svg { display: block; font-family: 'Geist Mono', monospace; }
+  svg { display: block; }
 </style><svg id="out" xmlns="http://www.w3.org/2000/svg"></svg>`;
 
 const browser = await chromium.launch({ executablePath: process.env.CHROME, args: ['--no-sandbox'] });
@@ -250,7 +242,8 @@ const widths = {};
 async function render(name, fn, arg) {
   for (const [theme, t] of Object.entries(themes)) {
     await page.setContent(html);
-    await page.evaluate(() => document.fonts.load("500 12px 'Geist Mono'"));
+    await page.addScriptTag({ content: marker.toString() });
+    await page.evaluate(() => Promise.all([document.fonts.load("450 13px 'Geist'"), document.fonts.load("500 11px 'Geist Mono'")]));
     await page.evaluate(fn, { ...arg, t, status });
     const svg = await page.$('svg');
     widths[name] = (await svg.boundingBox()).width;

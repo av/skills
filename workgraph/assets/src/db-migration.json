@@ -1,5 +1,4 @@
 {
-  "title": "workgraph · database migration",
   "nodes": [
     { "id": "plan",        "col": 0, "row": 0,  "state": "verified" },
     { "id": "schema",      "col": 1, "row": 0,  "state": "verified" },
