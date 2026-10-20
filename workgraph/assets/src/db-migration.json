@@ -1,0 +1,29 @@
+{
+  "title": "workgraph · database migration",
+  "nodes": [
+    { "id": "plan",        "col": 0, "row": 0,  "state": "verified" },
+    { "id": "schema",      "col": 1, "row": 0,  "state": "verified" },
+    { "id": "dual_write",  "col": 2, "row": 0,  "state": "verified" },
+    { "id": "backfill",    "col": 2, "row": 1,  "state": "running", "visits": 2 },
+    { "id": "parity",      "col": 3, "row": 0,  "state": "failed" },
+    { "id": "read_switch", "col": 4, "row": 0,  "state": "pending" },
+    { "id": "soak",        "col": 5, "row": 0,  "state": "pending" },
+    { "id": "rollback",    "col": 6, "row": -1, "state": "pending" },
+    { "id": "drop_old",    "col": 6, "row": 0,  "state": "pending" },
+    { "id": "cleanup",     "col": 7, "row": 0,  "state": "pending" }
+  ],
+  "edges": [
+    ["plan", "schema"],
+    ["schema", "dual_write"],
+    ["schema", "backfill"],
+    ["dual_write", "parity"],
+    ["backfill", "parity"],
+    { "from": "parity", "to": "backfill", "label": "FAIL", "loop": "below" },
+    ["parity", "read_switch"],
+    ["read_switch", "soak"],
+    { "from": "soak", "to": "rollback", "label": "FAIL" },
+    ["soak", "drop_old"],
+    ["drop_old", "cleanup"],
+    { "from": "rollback", "to": "plan", "loop": "above" }
+  ]
+}

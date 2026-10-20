@@ -1,0 +1,31 @@
+{
+  "title": "workgraph · research report",
+  "nodes": [
+    { "id": "scope",      "col": 0, "row": 0,    "state": "verified" },
+    { "id": "papers",     "col": 1, "row": -1.5, "state": "verified" },
+    { "id": "filings",    "col": 1, "row": -0.5, "state": "verified" },
+    { "id": "news",       "col": 1, "row": 0.5,  "state": "verified" },
+    { "id": "forums",     "col": 1, "row": 1.5,  "state": "escalated" },
+    { "id": "synth",      "col": 2, "row": 0,    "state": "verified" },
+    { "id": "fact_check", "col": 3, "row": 0,    "state": "running", "visits": 2 },
+    { "id": "revise",     "col": 4, "row": -1,   "state": "verified" },
+    { "id": "critic",     "col": 4, "row": 0,    "state": "pending" },
+    { "id": "publish",    "col": 5, "row": 0,    "state": "pending" }
+  ],
+  "edges": [
+    ["scope", "papers"],
+    ["scope", "filings"],
+    ["scope", "news"],
+    ["scope", "forums"],
+    ["papers", "synth"],
+    ["filings", "synth"],
+    ["news", "synth"],
+    ["forums", "synth"],
+    ["synth", "fact_check"],
+    { "from": "fact_check", "to": "revise", "label": "FAIL" },
+    { "from": "revise", "to": "fact_check", "loop": "above" },
+    ["fact_check", "critic"],
+    ["critic", "publish"],
+    { "from": "critic", "to": "synth", "label": "FAIL", "loop": "below" }
+  ]
+}
