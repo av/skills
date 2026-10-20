@@ -31,7 +31,7 @@ const themes = {
   },
   dark: {
     page: '#0d1117', node: '#151b23', nodeLine: '#3d444d', text: '#f0f6fc', muted: '#b1b8c0',
-    edge: '#656c76', loop: '#545b64', fail: '#f85149', attn: '#d29922', shadow: 0,
+    edge: '#7d848e', loop: '#6b727c', fail: '#f85149', attn: '#d29922', shadow: 0,
   },
 };
 
@@ -40,7 +40,7 @@ const themes = {
 const STATES = ['pending', 'ready', 'running', 'verified', 'failed', 'escalated'];
 const look = (t) => ({
   pending: { marker: 'ring', c: t.muted, text: t.muted, weight: 450 },
-  ready: { marker: 'ring', c: t.text, text: t.text, weight: 450 },
+  ready: { marker: 'dot', c: t.text, text: t.text, weight: 450 },
   running: { marker: 'live', c: t.text, text: t.text, weight: 600 },
   verified: { marker: 'check', c: t.muted, text: t.text, weight: 450 },
   failed: { marker: 'dot', c: t.fail, text: t.text, weight: 450, border: t.fail },
@@ -72,8 +72,8 @@ function draw({ spec, t, look }) {
     return e;
   };
   const SANS = "'Geist', sans-serif", MONO = "'Geist Mono', monospace";
-  const FS = 13.5, VS = 11.5, H = 32, RX = 8, PAD = 12, DOT = 6, DOTGAP = 9;
-  const ROW = 50, GAP = 34, BUS = 6, LOOP = 22, R = 10, ARW = 6, AW = 3.4, LS = 11.5;
+  const FS = 14.5, VS = 12, H = 32, RX = 8, PAD = 12, DOT = 6, DOTGAP = 9;
+  const ROW = 50, GAP = 30, BUS = 6, LOOP = 22, R = 10, ARW = 6, AW = 3.4, LS = 11.5;
   const LINE = { 'stroke-width': 1.25, fill: 'none', 'stroke-linejoin': 'round' };
   const DOTTED = { 'stroke-dasharray': '0.1 4', 'stroke-linecap': 'round', 'stroke-width': 1.6, fill: 'none' };
   const measure = (text, size, family, weight = 450) => {
@@ -178,10 +178,10 @@ function draw({ spec, t, look }) {
   // Nodes: one neutral pill; the state is the marker and label weight, and
   // the two attention states also take their accent as the border.
   for (const n of N.values()) {
-    const st = look[n.state], bw = st.border ? 1.5 : 1;
+    const st = look[n.state];
     el('rect', {
-      x: n.x + bw / 2, y: n.y + bw / 2, width: n.w - bw, height: H - bw, rx: RX,
-      fill: t.node, stroke: st.border || t.nodeLine, 'stroke-width': bw, filter: 'url(#lift)',
+      x: n.x + 0.5, y: n.y + 0.5, width: n.w - 1, height: H - 1, rx: RX, fill: t.node,
+      stroke: st.border || t.nodeLine, 'stroke-opacity': st.border ? 0.6 : 1, 'stroke-width': 1, filter: 'url(#lift)',
     }, nodes);
     const x0 = n.x + PAD;
     marker(el, nodes, st.marker, st.c, x0 + DOT / 2, n.cy);
