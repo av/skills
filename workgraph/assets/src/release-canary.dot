@@ -1,0 +1,33 @@
+// workgraph README sample: release with test matrix, canary and rollback (mid-run).
+// Back edges (class "back top|bottom") are left out of the layout and drawn by
+// render.mjs as brackets above or below the nodes they span.
+digraph release_canary {
+  freeze   [class=verified, group=main]
+  build    [class=verified, group=main, label="build ×2"]
+  linux    [class=verified, label="linux ×2"]
+  macos    [class=running, label="macos ×2"]
+  windows  [class=verified, label="windows ×2"]
+  e2e      [class=running, label="e2e ×2"]
+  gate     [class=pending, group=main]
+  canary   [class=failed, group=main]
+  rollback [class=verified]
+  hotfix   [class=verified]
+  notes    [class=verified]
+  rollout  [class=pending, group=main]
+
+  freeze -> build
+  build -> linux
+  build -> macos
+  build -> windows
+  build -> e2e
+  linux -> gate
+  macos -> gate
+  windows -> gate
+  e2e -> gate
+  gate -> canary
+  canary -> rollback [xlabel="5xx ↑"]
+  rollback -> hotfix
+  hotfix -> build [class="back top"]
+  canary -> rollout
+  notes -> rollout
+}

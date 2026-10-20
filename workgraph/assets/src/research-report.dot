@@ -1,0 +1,30 @@
+// workgraph README sample: multi-source research report (mid-run).
+// Back edges (class "back top|bottom") are left out of the layout and drawn by
+// render.mjs as brackets above or below the nodes they span.
+digraph research_report {
+  scope      [class=verified, group=main]
+  papers     [class=verified]
+  filings    [class=verified]
+  news       [class=verified]
+  forums     [class=escalated]
+  synth      [class=verified, group=main]
+  fact_check [class=running, group=main, label="fact_check ×2"]
+  revise     [class=verified]
+  critic     [class=pending, group=main]
+  publish    [class=pending, group=main]
+
+  scope -> papers
+  scope -> filings
+  scope -> news
+  scope -> forums
+  papers -> synth
+  filings -> synth
+  news -> synth
+  forums -> synth
+  synth -> fact_check
+  fact_check -> revise [xlabel=FAIL]
+  revise -> fact_check [class="back top"]
+  fact_check -> critic
+  critic -> publish
+  critic -> synth [class="back bottom", label=FAIL]
+}
