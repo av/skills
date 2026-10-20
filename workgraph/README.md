@@ -7,7 +7,7 @@ Orchestrate work as a cyclic directed graph of subagent-executed nodes with tran
 ## Example graphs
 
 Every render uses the skill's fixed palette:
-`gray PENDING · blue READY · orange RUNNING · green VERIFIED · red FAILED · purple ESCALATED`
+`dashed PENDING · outlined READY · bold RUNNING · gray VERIFIED · red FAILED · amber ESCALATED`
 
 ### Database migration with dual-write and a rollback gate
 
@@ -23,7 +23,7 @@ back to `plan`.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="./assets/graph-legend-dark.png">
-  <img src="./assets/graph-legend-light.png" width="680" alt="Key: hollow gray dot PENDING, blue READY, orange RUNNING, green VERIFIED, red FAILED, purple ESCALATED; red dotted line = FAIL edge; gray dotted line = loop back; ×N = visit count">
+  <img src="./assets/graph-legend-light.png" width="680" alt="Key: dashed ring PENDING, ring READY, bold ring RUNNING, check VERIFIED, red dot FAILED, amber triangle ESCALATED; red dotted line = FAIL edge; gray dotted line = loop back; ×N = visit count">
 </picture>
 
 ### Multi-source research report with fact-check and revision

@@ -237,15 +237,15 @@ flowchart LR
   class spec,docs verified
   class build running
   class gate,merge pending
-  classDef pending fill:#9e9e9e,color:#fff
-  classDef ready fill:#1e88e5,color:#fff
-  classDef running fill:#fb8c00,color:#fff
-  classDef verified fill:#43a047,color:#fff
-  classDef failed fill:#e53935,color:#fff
-  classDef escalated fill:#8e24aa,color:#fff
+  classDef pending fill:#f6f8fa,stroke:#8c959f,stroke-dasharray:4 3,color:#656d76
+  classDef ready fill:#ffffff,stroke:#8c959f,color:#1f2328
+  classDef running fill:#ffffff,stroke:#1f2328,stroke-width:2.5px,color:#1f2328
+  classDef verified fill:#e8ecf0,stroke:#e8ecf0,color:#1f2328
+  classDef failed fill:#cf222e,stroke:#cf222e,color:#ffffff
+  classDef escalated fill:#fff8c5,stroke:#9a6700,stroke-width:2px,color:#1f2328
 ```
 
-Legend line: `gray PENDING · blue READY · orange RUNNING · green VERIFIED · red FAILED · purple ESCALATED`
+Legend line: `dashed PENDING · outlined READY · bold RUNNING · gray VERIFIED · red FAILED · amber ESCALATED`
 
 ## Phase 2: The Loop
 

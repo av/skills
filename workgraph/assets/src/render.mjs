@@ -22,27 +22,47 @@ const OUT = path.dirname(SRC);
 const README_WIDTH = 860; // github.com README column is ~860px wide
 const FONT = path.join(process.cwd(), 'node_modules/geist/dist/fonts/geist-mono/GeistMono-Variable.woff2');
 
-// Status colours from SKILL.md; shown only as the status dot and the border
-// of nodes that need attention. Everything else is neutral, matched to
-// GitHub's own light and dark surfaces. Edge colours are opaque so shared
-// segments never darken where they overlap.
-const status = {
-  pending: '#9e9e9e', ready: '#1e88e5', running: '#fb8c00',
-  verified: '#43a047', failed: '#e53935', escalated: '#8e24aa',
-};
+// Neutral surfaces matched to GitHub's light and dark themes. Status follows
+// SKILL.md's muted palette: two accents (red FAILED, amber ESCALATED); the
+// other states differ by marker and line weight only. Edge colours are opaque
+// so shared segments never darken where they overlap.
 const themes = {
   dark: {
-    canvas: '#10151c', card: '#2a323c', grid: '#1b2129', node: '#161c24', nodeLine: '#2b333d',
-    text: '#e6edf3', muted: '#9aa3ad', edge: '#5f6873', loop: '#5a636e', fail: '#f0605a', shadow: 0,
+    canvas: '#10151c', card: '#2a323c', grid: '#1b2129', node: '#161c24', nodeLine: '#2b333d', done: '#222a33',
+    text: '#e6edf3', muted: '#9aa3ad', edge: '#5f6873', loop: '#5a636e', fail: '#f85149', attn: '#d29922', shadow: 0,
   },
   light: {
-    canvas: '#f6f8fa', card: '#dfe4e9', grid: '#e1e6eb', node: '#ffffff', nodeLine: '#d6dce2',
-    text: '#1f2328', muted: '#656d76', edge: '#9aa3ad', loop: '#a8b1bb', fail: '#d73a33', shadow: 0.05,
+    canvas: '#f6f8fa', card: '#dfe4e9', grid: '#e1e6eb', node: '#ffffff', nodeLine: '#d6dce2', done: '#e8ecf0',
+    text: '#1f2328', muted: '#656d76', edge: '#9aa3ad', loop: '#a8b1bb', fail: '#cf222e', attn: '#9a6700', shadow: 0.05,
   },
 };
+const STATES = ['pending', 'ready', 'running', 'verified', 'failed', 'escalated'];
+// Per state: node fill, border, border width, dash, label colour, marker.
+const look = (t) => ({
+  pending: { fill: t.node, stroke: t.muted, width: 1, dash: '3 3', text: t.muted, marker: ['ring', t.muted] },
+  ready: { fill: t.node, stroke: t.muted, width: 1, text: t.text, marker: ['ring', t.text] },
+  running: { fill: t.node, stroke: t.text, width: 1.5, text: t.text, marker: ['live', t.text] },
+  verified: { fill: t.done, stroke: t.done, width: 1, text: t.text, marker: ['check', t.muted] },
+  failed: { fill: t.node, stroke: t.fail, width: 1.5, text: t.text, marker: ['dot', t.fail] },
+  escalated: { fill: t.node, stroke: t.attn, width: 1.5, text: t.text, marker: ['bang', t.attn] },
+});
+
+// Injected into the page: draws a 6px status marker centred on (x, y).
+function marker(el, parent, [kind, c], x, y) {
+  if (kind === 'ring') return el('circle', { cx: x, cy: y, r: 2.8, fill: 'none', stroke: c, 'stroke-width': 1.3 }, parent);
+  if (kind === 'dot') return el('circle', { cx: x, cy: y, r: 3.2, fill: c }, parent);
+  if (kind === 'live') {
+    el('circle', { cx: x, cy: y, r: 5.6, fill: 'none', stroke: c, 'stroke-opacity': 0.4, 'stroke-width': 1.2 }, parent);
+    return el('circle', { cx: x, cy: y, r: 2.6, fill: c }, parent);
+  }
+  if (kind === 'check') return el('path', { d: `M${x - 3.4},${y + 0.2} L${x - 1},${y + 2.6} L${x + 3.6},${y - 2.6}`, fill: 'none', stroke: c, 'stroke-width': 1.6, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }, parent);
+  // bang: small filled triangle with a notch, for "needs a human"
+  el('path', { d: `M${x},${y - 4} L${x + 4.2},${y + 3.4} L${x - 4.2},${y + 3.4} Z`, fill: c, 'stroke-linejoin': 'round' }, parent);
+  return el('rect', { x: x - 0.6, y: y - 1.4, width: 1.2, height: 2.6, rx: 0.6, fill: '#fff', 'fill-opacity': 0.9 }, parent);
+}
 
 // Runs in the page. Lays out and draws one graph card into <svg id="out">.
-function draw({ spec, t, status }) {
+function draw({ spec, t, look }) {
   const NS = 'http://www.w3.org/2000/svg';
   const svg = document.getElementById('out');
   const el = (name, attrs = {}, parent = svg) => {
@@ -159,20 +179,19 @@ function draw({ spec, t, status }) {
     }
   }
 
-  // Nodes: neutral pill, hairline border, status dot; attention states get an
-  // accent border. Content is left-aligned so stacked dots line up.
+  // Nodes: neutral pill; state shows as marker, border weight and fill only.
+  // Content is left-aligned so stacked markers line up.
   for (const n of N.values()) {
-    const c = status[n.state];
-    const loud = ['running', 'failed', 'escalated'].includes(n.state);
+    const st = look[n.state];
+    const inset = st.width / 2;
     el('rect', {
-      x: n.x + 0.5, y: n.y + 0.5, width: n.w - 1, height: H - 1, rx: RX, fill: t.node,
-      stroke: loud ? c : t.nodeLine, 'stroke-width': 1, filter: 'url(#lift)',
+      x: n.x + inset, y: n.y + inset, width: n.w - 2 * inset, height: H - 2 * inset, rx: RX, fill: st.fill,
+      stroke: st.stroke, 'stroke-width': st.width, ...(st.dash ? { 'stroke-dasharray': st.dash } : {}),
+      filter: n.state === 'verified' ? 'none' : 'url(#lift)',
     }, nodes);
-    const x0 = n.x + PAD, dx = x0 + DOT / 2;
-    if (n.state === 'running') el('circle', { cx: dx, cy: n.cy, r: 5.6, fill: 'none', stroke: c, 'stroke-opacity': 0.45, 'stroke-width': 1.2 }, nodes);
-    if (n.state === 'pending') el('circle', { cx: dx, cy: n.cy, r: 2.7, fill: 'none', stroke: c, 'stroke-width': 1.3 }, nodes);
-    else el('circle', { cx: dx, cy: n.cy, r: 3.1, fill: c }, nodes);
-    const label = el('text', { x: x0 + DOT + DOTGAP, y: n.cy + 4.8, 'font-size': FS, 'font-weight': 400, fill: n.state === 'pending' ? t.muted : t.text }, nodes);
+    const x0 = n.x + PAD;
+    marker(el, nodes, st.marker, x0 + DOT / 2, n.cy);
+    const label = el('text', { x: x0 + DOT + DOTGAP, y: n.cy + 4.8, 'font-size': FS, 'font-weight': n.state === 'running' ? 500 : 400, fill: st.text }, nodes);
     label.textContent = n.id;
     if (n.suffix) {
       const v = el('tspan', { fill: t.muted }, label);
@@ -196,13 +215,13 @@ function draw({ spec, t, status }) {
 }
 
 // Runs in the page. Draws the one-line colour key, in the nodes' marker style.
-function legend({ t, status }) {
+function legend({ t, look, states }) {
   const NS = 'http://www.w3.org/2000/svg';
   const svg = document.getElementById('out');
-  const el = (name, attrs = {}) => {
+  const el = (name, attrs = {}, parent = svg) => {
     const e = document.createElementNS(NS, name);
     for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v);
-    svg.append(e);
+    parent.append(e);
     return e;
   };
   const DOTTED = { 'stroke-dasharray': '0.1 4', 'stroke-linecap': 'round', 'stroke-width': 1.6 };
@@ -214,10 +233,8 @@ function legend({ t, status }) {
     tx.textContent = s;
     x += tx.getComputedTextLength() + 22;
   };
-  for (const [k, c] of Object.entries(status)) {
-    if (k === 'running') el('circle', { cx: x + 3, cy, r: 5.6, fill: 'none', stroke: c, 'stroke-opacity': 0.45, 'stroke-width': 1.2 });
-    if (k === 'pending') el('circle', { cx: x + 3, cy, r: 2.7, fill: 'none', stroke: c, 'stroke-width': 1.3 });
-    else el('circle', { cx: x + 3, cy, r: 3.1, fill: c });
+  for (const k of states) {
+    marker(el, svg, look[k].marker, x + 3, cy);
     x += 14;
     text(k.toUpperCase());
   }
@@ -250,8 +267,9 @@ const widths = {};
 async function render(name, fn, arg) {
   for (const [theme, t] of Object.entries(themes)) {
     await page.setContent(html);
+    await page.addScriptTag({ content: marker.toString() });
     await page.evaluate(() => document.fonts.load("500 12px 'Geist Mono'"));
-    await page.evaluate(fn, { ...arg, t, status });
+    await page.evaluate(fn, { ...arg, t, look: look(t), states: STATES });
     const svg = await page.$('svg');
     widths[name] = (await svg.boundingBox()).width;
     await svg.screenshot({ path: path.join(OUT, `graph-${name}-${theme}.png`), omitBackground: true });
