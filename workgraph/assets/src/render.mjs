@@ -22,33 +22,47 @@ const OUT = path.dirname(SRC);
 const README_WIDTH = 860; // github.com README column is ~860px wide
 const FONTS = path.join(process.cwd(), 'node_modules/geist/dist/fonts');
 
-// Status colours from SKILL.md, used only for the small status marker.
-const status = {
-  pending: '#9e9e9e', ready: '#1e88e5', running: '#fb8c00',
-  verified: '#43a047', failed: '#e53935', escalated: '#8e24aa',
-};
 // Neutral ink per GitHub theme; `page` is GitHub's background, used behind
 // inline labels. Edge colours are opaque so shared segments never darken.
 const themes = {
   light: {
     page: '#ffffff', node: '#ffffff', nodeLine: '#d1d9e0', text: '#1f2328', muted: '#59636e',
-    edge: '#8c959f', loop: '#afb8c1', fail: '#cf222e', shadow: 0.05,
+    edge: '#8c959f', loop: '#afb8c1', fail: '#cf222e', attn: '#9a6700', shadow: 0.05,
   },
   dark: {
     page: '#0d1117', node: '#151b23', nodeLine: '#3d444d', text: '#f0f6fc', muted: '#b1b8c0',
-    edge: '#656c76', loop: '#545b64', fail: '#f85149', shadow: 0,
+    edge: '#7d848e', loop: '#6b727c', fail: '#f85149', attn: '#d29922', shadow: 0,
   },
 };
 
-// Injected into the page: the status marker, centred on (x, y).
-function marker(el, parent, state, c, x, y) {
-  if (state === 'pending') return el('circle', { cx: x, cy: y, r: 2.8, fill: 'none', stroke: c, 'stroke-width': 1.3 }, parent);
-  if (state === 'running') el('circle', { cx: x, cy: y, r: 5.6, fill: 'none', stroke: c, 'stroke-opacity': 0.35, 'stroke-width': 1.2 }, parent);
-  return el('circle', { cx: x, cy: y, r: 3.2, fill: c }, parent);
+// SKILL.md's muted palette: neutral states differ by marker and weight; only
+// FAILED (red) and ESCALATED (amber) carry colour, as marker and border.
+const STATES = ['pending', 'ready', 'running', 'verified', 'failed', 'escalated'];
+const look = (t) => ({
+  pending: { marker: 'ring', c: t.muted, text: t.muted, weight: 450 },
+  ready: { marker: 'dot', c: t.text, text: t.text, weight: 450 },
+  running: { marker: 'live', c: t.text, text: t.text, weight: 600 },
+  verified: { marker: 'check', c: t.muted, text: t.text, weight: 450 },
+  failed: { marker: 'dot', c: t.fail, text: t.text, weight: 450, border: t.fail },
+  escalated: { marker: 'bang', c: t.attn, text: t.text, weight: 450, border: t.attn },
+});
+
+// Injected into the page: a status marker, centred on (x, y).
+function marker(el, parent, kind, c, x, y) {
+  if (kind === 'ring') return el('circle', { cx: x, cy: y, r: 2.8, fill: 'none', stroke: c, 'stroke-width': 1.3 }, parent);
+  if (kind === 'live') el('circle', { cx: x, cy: y, r: 5.6, fill: 'none', stroke: c, 'stroke-opacity': 0.35, 'stroke-width': 1.2 }, parent);
+  if (kind === 'check') {
+    return el('path', {
+      d: `M${x - 3.4},${y + 0.2} L${x - 1},${y + 2.6} L${x + 3.6},${y - 2.6}`, fill: 'none', stroke: c,
+      'stroke-width': 1.6, 'stroke-linecap': 'round', 'stroke-linejoin': 'round',
+    }, parent);
+  }
+  if (kind === 'bang') return el('path', { d: `M${x},${y - 4} L${x + 4.2},${y + 3.4} L${x - 4.2},${y + 3.4} Z`, fill: c }, parent);
+  return el('circle', { cx: x, cy: y, r: kind === 'live' ? 2.6 : 3.2, fill: c }, parent);
 }
 
 // Runs in the page. Lays out and draws one graph into <svg id="out">.
-function draw({ spec, t, status }) {
+function draw({ spec, t, look }) {
   const NS = 'http://www.w3.org/2000/svg';
   const svg = document.getElementById('out');
   const el = (name, attrs = {}, parent = svg) => {
@@ -58,12 +72,12 @@ function draw({ spec, t, status }) {
     return e;
   };
   const SANS = "'Geist', sans-serif", MONO = "'Geist Mono', monospace";
-  const FS = 13.5, VS = 11.5, H = 32, RX = 8, PAD = 12, DOT = 6, DOTGAP = 9;
-  const ROW = 50, GAP = 34, BUS = 6, LOOP = 22, R = 10, ARW = 6, AW = 3.4, LS = 11.5;
+  const FS = 14.5, VS = 12, H = 32, RX = 8, PAD = 12, DOT = 6, DOTGAP = 9;
+  const ROW = 50, GAP = 30, BUS = 6, LOOP = 22, R = 10, ARW = 6, AW = 3.4, LS = 11.5;
   const LINE = { 'stroke-width': 1.25, fill: 'none', 'stroke-linejoin': 'round' };
   const DOTTED = { 'stroke-dasharray': '0.1 4', 'stroke-linecap': 'round', 'stroke-width': 1.6, fill: 'none' };
-  const measure = (text, size, family) => {
-    const m = el('text', { 'font-size': size, 'font-family': family, 'font-weight': 450 });
+  const measure = (text, size, family, weight = 450) => {
+    const m = el('text', { 'font-size': size, 'font-family': family, 'font-weight': weight });
     m.textContent = text;
     const w = m.getComputedTextLength();
     m.remove();
@@ -80,7 +94,7 @@ function draw({ spec, t, status }) {
   const N = new Map(spec.nodes.map((n) => [n.id, { ...n }]));
   for (const n of N.values()) {
     n.suffix = n.visits ? `×${n.visits}` : '';
-    n.tw = measure(n.id, FS, SANS) + (n.suffix ? 7 + measure(n.suffix, VS, MONO) : 0);
+    n.tw = measure(n.id, FS, SANS, look[n.state].weight) + (n.suffix ? 7 + measure(n.suffix, VS, MONO) : 0);
     n.w = 2 * PAD + DOT + DOTGAP + n.tw;
   }
   const cols = Math.max(...[...N.values()].map((n) => n.col)) + 1;
@@ -161,17 +175,18 @@ function draw({ spec, t, status }) {
     }
   }
 
-  // Nodes: one neutral pill for every state; the state is the small marker.
+  // Nodes: one neutral pill; the state is the marker and label weight, and
+  // the two attention states also take their accent as the border.
   for (const n of N.values()) {
+    const st = look[n.state];
     el('rect', {
-      x: n.x + 0.5, y: n.y + 0.5, width: n.w - 1, height: H - 1, rx: RX,
-      fill: t.node, stroke: t.nodeLine, 'stroke-width': 1, filter: 'url(#lift)',
+      x: n.x + 0.5, y: n.y + 0.5, width: n.w - 1, height: H - 1, rx: RX, fill: t.node,
+      stroke: st.border || t.nodeLine, 'stroke-opacity': st.border ? 0.6 : 1, 'stroke-width': 1, filter: 'url(#lift)',
     }, nodes);
     const x0 = n.x + PAD;
-    marker(el, nodes, n.state, status[n.state], x0 + DOT / 2, n.cy);
+    marker(el, nodes, st.marker, st.c, x0 + DOT / 2, n.cy);
     const label = el('text', {
-      x: x0 + DOT + DOTGAP, y: n.cy + 4.6, 'font-size': FS, 'font-family': SANS, 'font-weight': 450,
-      fill: n.state === 'pending' ? t.muted : t.text,
+      x: x0 + DOT + DOTGAP, y: n.cy + 4.6, 'font-size': FS, 'font-family': SANS, 'font-weight': st.weight, fill: st.text,
     }, nodes);
     label.textContent = n.id;
     if (n.suffix) {
@@ -190,7 +205,7 @@ function draw({ spec, t, status }) {
 }
 
 // Runs in the page. Draws the one-line colour key: node states, then edge types.
-function legend({ t, status }) {
+function legend({ t, look, states }) {
   const NS = 'http://www.w3.org/2000/svg';
   const svg = document.getElementById('out');
   const el = (name, attrs = {}, parent = svg) => {
@@ -207,8 +222,8 @@ function legend({ t, status }) {
     tx.textContent = s;
     x += tx.getComputedTextLength() + gap;
   };
-  for (const [k, c] of Object.entries(status)) {
-    marker(el, svg, k, c, x + 3, cy);
+  for (const k of states) {
+    marker(el, svg, look[k].marker, look[k].c, x + 3, cy);
     x += 13;
     text(k.toUpperCase(), t.muted);
   }
@@ -245,7 +260,7 @@ async function render(name, fn, arg) {
     await page.setContent(html);
     await page.addScriptTag({ content: marker.toString() });
     await page.evaluate(() => Promise.all([document.fonts.load("450 13px 'Geist'"), document.fonts.load("500 11px 'Geist Mono'")]));
-    await page.evaluate(fn, { ...arg, t, status });
+    await page.evaluate(fn, { ...arg, t, look: look(t), states: STATES });
     const svg = await page.$('svg');
     widths[name] = (await svg.boundingBox()).width;
     await svg.screenshot({ path: path.join(OUT, `graph-${name}-${theme}.png`), omitBackground: true });
