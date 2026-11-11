@@ -21,11 +21,11 @@ One fact per line, `-` prefixed. Group with `#` headings only when there are 2+ 
 # billing
 - MRR is $48.2k, up 6% MoM [stripe, 2026-08-25]
 - 3 enterprise deals in contract stage
-- Brain Restore Centers closed at $500/mo
+- Example customer closed at $500/mo
 
 # risks
 - churn concentrated in workspaces without custom skills
-- VIK-2058 unassigned until 07:20Z, now with Ivan
+- ISSUE-2058 unassigned until 07:20Z, now with the owner
 ```
 
 ## Fact-writing rules
@@ -38,7 +38,7 @@ One fact per line, `-` prefixed. Group with `#` headings only when there are 2+ 
 - **Concrete over abstract** — keep the number, drop the characterization ("up 6%" not "healthy growth"). If the source only had the characterization, keep it but keep it short.
 - **Preserve epistemic status** — distinguish known / claimed / uncertain. Mark non-verified claims inline: `- vendor claims fix ships Friday (unverified)`. Never upgrade a guess to a fact.
 - **Keep attribution and provenance** when it matters: who said it, which source, which date — `[source, YYYY-MM-DD]` for volatile data.
-- **Drop entirely:** greetings, transitions, motivation/context the reader already has, recommendations unless they were part of the source content (then state them as facts: `- Viktor recommends X because Y`).
+- **Drop entirely:** greetings, transitions, motivation/context the reader already has, recommendations unless they were part of the source content (then state them as facts: `- the author recommends X because Y`).
 - **Order by importance**, not source order, unless the source is a sequence (timeline, steps) — then preserve order.
 
 ## Sizing

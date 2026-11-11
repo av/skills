@@ -211,6 +211,11 @@ bash <skill-dir>/scaffold/init.sh \
   --slug <slug> --goal "<goal>" --mode <finite|open-ended> [--duration <e.g. 4h|90m>]
 ```
 
+`<skill-dir>` is the directory containing the loaded `SKILL.md`, including its
+`scaffold/` folder. Resolve it from the installed skill path rather than assuming
+a global install. If `scaffold/init.sh` is missing, stop setup and reinstall with
+`npx skills add av/skills --skill timeboxed-iterating`. Do not rebuild it by hand.
+
 It creates and variable-substitutes:
 
 ```
@@ -222,8 +227,9 @@ run-card.md      — the static RUN CARD: run identity + workspace map + resume
                    pointer. Holds NO volatile values (those live only in
                    progress.md). Read it once to orient.
 cheatsheet.md    — persistent, growing: environment recipes, working commands,
-                   tool quirks, known gotchas, auth workarounds. Seeded empty of
-                   findings; read by every subagent, appended to by every subagent.
+                   tool quirks, known gotchas, auth workarounds. Seeded with known
+                   tool errors and their next step; read by every subagent,
+                   appended to by every subagent.
 prompts/         — role prompt files, produced ONCE by the scaffold from the
                    filesystem templates in `scaffold/`: initialiser.md (read FIRST
                    by every subagent), builder.md, sub-subagent.md, measurement.md.
@@ -519,7 +525,8 @@ textual, or `none`).
 - `progress.md` — the digest (single source of truth; header + finite list +
   iteration log).
 - `run-card.md` — the static run card (identity + workspace map + resume pointer).
-- `cheatsheet.md` — seeded with section headings, empty of findings; self-populates.
+- `cheatsheet.md` — seeded with section headings, known tool errors with their next
+  step, and a private `cache/` for `XDG_CACHE_HOME`; self-populates.
 - `units/` — one file per unit at dispatch time.
 
 ### The four role prompts (full text lives in `scaffold/`)

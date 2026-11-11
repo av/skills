@@ -16,7 +16,19 @@ A library of agent skills by [@av](https://github.com/av) for **Claude Code**, *
 npx skills add av/skills --skill <name>
 ```
 
-Skills are plain folders containing a `SKILL.md`, so you can also just copy one into `.claude/skills/` (or your agent's equivalent) by hand.
+Choose an agent explicitly for a non-interactive project install:
+
+```bash
+npx skills add av/skills --skill timeboxed-iterating --agent claude-code --yes
+npx skills add av/skills --skill timeboxed-iterating --agent codex --yes
+```
+
+Replace `timeboxed-iterating` with any name below, or use `--skill '*'` for all
+skills. Add `--global` to install for your user instead of the current project.
+
+For a manual install, copy the **whole skill folder**, including scripts,
+references and assets, into `.claude/skills/` for Claude Code or
+`.agents/skills/` for Codex. Copying only `SKILL.md` leaves some skills incomplete.
 
 ## Skills
 
@@ -30,7 +42,7 @@ Skills are plain folders containing a `SKILL.md`, so you can also just copy one 
 
 <img src="./assets/logos/timeboxed-iterating.svg" width="26" align="top" alt="">&nbsp;**[timeboxed-iterating](./timeboxed-iterating)** — Run a task iteratively over a user-specified duration by dispatching subagents.
 
-<img src="./assets/logos/use-coding-agents.svg" width="26" align="top" alt="">&nbsp;**[use-coding-agents](./use-coding-agents)** — How to use the coding agents installed on this machine (claude, codex, droid, grok, vktr, hermes, opencode, copilot, pi) as plain sub-agents in orchestrated workflows: one headless…
+<img src="./assets/logos/use-coding-agents.svg" width="26" align="top" alt="">&nbsp;**[use-coding-agents](./use-coding-agents)** — How to use the coding agents installed on this machine (claude, codex, droid, grok, hermes, opencode, copilot, pi) as plain sub-agents in orchestrated workflows: one headless invocation,…
 
 <img src="./assets/logos/sandcastle.svg" width="26" align="top" alt="">&nbsp;**[sandcastle](./sandcastle)** — Orchestrate AI coding agents (Claude Code, Codex, OpenCode) in isolated sandboxes using the @ai-hero/sandcastle SDK.
 
@@ -80,7 +92,7 @@ Skills are plain folders containing a `SKILL.md`, so you can also just copy one 
 
 ### Agent craft
 
-<img src="./assets/logos/discipline.svg" width="26" align="top" alt="">&nbsp;**[discipline](./discipline)** — Bulletproof agent operating protocol.
+<img src="./assets/logos/discipline.svg" width="26" align="top" alt="">&nbsp;**[discipline](./discipline)** — Bulletproof agent operating protocol for failure prevention.
 
 <img src="./assets/logos/improve-skill.svg" width="26" align="top" alt="">&nbsp;**[improve-skill](./improve-skill)** — Improve an existing agent SKILL.md through one gated cycle: select the target (default this skill), snapshot the committed baseline, diagnose against skill-design-principles plus four…
 

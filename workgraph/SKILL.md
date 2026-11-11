@@ -1,6 +1,6 @@
 ---
 name: workgraph
-description: Orchestrate work as a cyclic directed graph of subagent-executed nodes with transition criteria on edges, budgeted cycles, and per-node gates (runtime verification, metric, or artifact). Use when the user says "workgraph", "run this as a graph", "graph this work", or when a goal has parallel branches, feedback loops, or mixed gate types that a linear loop cannot express. Every node is sized to a 64k context budget, so small goals run as a two-node do/verify graph and large goals scale out without caps. For clock-driven or metric-driven single loops, timeboxed-iterating and autoresearch remain lighter.
+description: Orchestrate work as a cyclic directed graph of subagent-executed nodes with transition criteria on edges, budgeted cycles, and per-node gates (runtime verification, metric, or artifact). Use when the user says "workgraph", "run this as a graph", "graph this work", or when a goal has parallel branches, feedback loops, or mixed gate types that a linear loop cannot express. Every node is sized to a 64k context budget, so small goals run as a two-node do/verify graph and large goals scale out without caps. For clock-driven or metric-driven single loops, timeboxed-iterating and autoresearch remain lighter. Parent orchestrators load this file; a one-node worker follows its node prompt and input file instead, unless its charter assigns planning, routing, gating or graph maintenance.
 ---
 
 # Workgraph
@@ -284,8 +284,9 @@ Before each dispatch: increment `visits`, create the worktree for a
 mutating node if absent (`wt/<id>`, branch `wg/<slug>/<id>` from trunk;
 reuse it on re-entry), set `RUNNING`, start the worker in the worktree
 (cwd if the harness has one, else `cd` as the prompt's first line), and write
-`inputs/<node>-v<visit>.md`: the charter, the acceptance criteria, scope,
-incoming artifact paths, and on re-entry the check that failed last visit.
+`inputs/<node>-v<visit>.md`: the charter, the acceptance criteria (deliverable,
+observable proof, named gates), scope, incoming artifact paths as absolute paths, and on
+re-entry the check that failed last visit.
 One screen. Read-only nodes run in the shared tree and must not write;
 `git status` clean is their check.
 
@@ -295,10 +296,16 @@ silent for 30 minutes is killed and marked `FAILED`; its
 backward edge fires, or it escalates if there is none. The visit cap is a
 hard stop: reaching it ends the run at the next Route.
 
-One prompt per node — fill the brackets, keep the structure:
+One prompt per node — fill the brackets, keep the structure. It is the
+worker's whole brief: every path in it is absolute, and a worker does not
+load this skill unless its charter is planning, routing, gating or graph
+maintenance.
 
 ```
 You are executing ONE node of a work graph. Attempt <N>.
+This prompt and your input file are your whole brief; you do not need the
+workgraph skill. Graph dir: <absolute graph dir>. Resolve every relative
+artifact path against it, never against the repo.
 
 Charter: <node charter>
 Scope: <worktree path or repo path; mutable and frozen paths>
@@ -316,8 +323,14 @@ Rules:
 - Stay inside your charter. One node, nothing else.
 - Mutating node: commit before returning; confirm with git status.
   Read-only node: write nothing outside <graph dir>/artifacts/.
-- Temp files to /tmp only.
+- Temp files to /tmp only. `export XDG_CACHE_HOME=<graph dir>/cache/<node>`
+  first, so gh and other CLIs never share a cache with another user.
+- After a tool error, do the next step it names before calling that tool
+  again (Read before Edit, a supported wait tool, `command -v` once).
 - If blocked, report exactly what is blocking — do not improvise around it.
+- Before DONE, compare your diff and observed result with the acceptance
+  criteria in your input file. Only a proxy passed, or a named gate is still
+  open → BLOCKED, naming what is unmet.
 
 Return: write <graph dir>/artifacts/<node>-v<visit>-return.md (30 lines
 max): what you did, commit hash, verification output location, and any
@@ -380,7 +393,10 @@ why, alternative rejected.
 
 Subagents propose missing nodes and edges in their returns; you decide.
 Append accepted ones to `graph.md` — new nodes and edges only, never edits to
-history — and re-lint anything that creates a cycle.
+history — then re-lint reachability, cycle budgets and edge criteria. A user
+request to shrink the graph stops expansion until the graph is smaller. On
+resume, check every `RUNNING` row against its return file and `log.md` before
+routing; log each status you correct.
 A split of a node that ran out of context happens here too, as new nodes
 replacing the old (old node marked `SPLIT`, never deleted). Stall behavior
 follows: a graph that goes quiet while the goal is unmet gets one
