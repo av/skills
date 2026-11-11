@@ -22,6 +22,9 @@ Do this one unit of real work toward the goal, end to end.
   more powerful than the one you are running on.
 - Produce a tangible artifact — committed code, written content, a real
   finding/fix — NOT a plan, not a list of suggestions, not analysis.
+- Before returning `done`, check the artifact against your unit's target the way
+  the user would observe it. If only a proxy passed (tests, a build) or the unit
+  file names a gate that is still open, return `blocked` and name what is unmet.
 - Commit before returning: `timeboxed(<unit-id>): <summary>`. The unit-id prefix
   is how an interrupted run attributes your commit — never omit it.
 

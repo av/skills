@@ -6,7 +6,7 @@
 #              (variable-substituted from this scaffold's template files)
 #   progress.md   the digest (single source of truth for volatile values)
 #   run-card.md   the static run card / orientation
-#   cheatsheet.md seeded but empty of findings (self-populates as subagents run)
+#   cheatsheet.md seeded with known tool errors only (self-populates as subagents run)
 #   units/        one file per unit (created on demand)
 #
 # Usage:
@@ -107,17 +107,26 @@ render "$SCRIPT_DIR/measurement.md"   "$HARNESS/prompts/measurement.md"
 render "$SCRIPT_DIR/progress.md.tmpl" "$HARNESS/progress.md"
 render "$SCRIPT_DIR/run-card.md.tmpl" "$HARNESS/run-card.md"
 
-# Seed the cheatsheet: section headings only, no findings yet (it self-populates).
+# Seed the cheatsheet: headings plus known tool errors and their next step (it self-populates).
 cat > "$HARNESS/cheatsheet.md" <<EOF
 # Cheatsheet — ${GOAL}
 Read this FIRST. Append any environment fact you had to discover, under the right
 heading, before you return — so the next subagent does not re-learn it.
 
 ## Environment recipes
+- Private writable cache for this run (gh and other CLIs): \`export XDG_CACHE_HOME=$HARNESS/cache\`
 ## Working commands
 ## Tool quirks & gotchas
+- A tool error that names a prerequisite: do that first, never resend the same call.
+- Claude \`Edit\` "file has not been read": \`Read\` that exact path (a shell cat does not count), then \`Edit\`.
+- \`Edit\` old string not found: re-read that region and copy the exact text.
+- Claude Bash rejects \`sleep N; <status>\`: use \`Monitor\` with an \`until\` loop, or \`run_in_background\`.
+- droid (Factory) Bash stops at 60 s: keep every wait under 60 s.
+- \`command not found\`: \`command -v <tool>\` once; if absent, switch tools (Backlog.md, not dstask).
+- Guessed path missing: one \`rg --files | rg <name>\`, then use what it finds.
 ## Auth / access workarounds
 EOF
+mkdir -p "$HARNESS/cache"
 
 # .gitkeep so an empty units/ survives if the harness itself is versioned.
 : > "$HARNESS/units/.gitkeep"

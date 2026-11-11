@@ -138,7 +138,13 @@ async function main() {
     const logoHeader = await hasLogo(skill.name)
       ? `<img src="../${LOGO_DIR}/${skill.name}.svg" width="72" align="left" hspace="12" alt="">\n\n`
       : "";
-    const readmeContent = `${logoHeader}# ${skill.name}\n\n${skill.description}\n\n` +
+    let extra = "";
+    try {
+      extra = (await Deno.readTextFile(join(skill.folder, "README.extra.md"))).trim() + "\n\n";
+    } catch (error) {
+      if (!(error instanceof Deno.errors.NotFound)) throw error;
+    }
+    const readmeContent = `${logoHeader}# ${skill.name}\n\n${skill.description}\n\n${extra}` +
       `\`\`\`bash\n${installCmd(skill.folder)}\n\`\`\`\n\n` +
       `Part of [${REPO}](https://github.com/${REPO}) — a library of agent skills ` +
       `for Claude Code, Codex, OpenCode and other coding agents.\n`;
